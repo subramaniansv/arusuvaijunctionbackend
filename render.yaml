@@ -36,6 +36,12 @@ services:
         sync: false
       - key: RAZORPAY_WEBHOOK_SECRET
         sync: false
+      # --- ZeptoMail HTTP API (preferred on Render: SMTP is blocked) ---
+      - key: ZEPTOMAIL_TOKEN
+        sync: false           # "Send Mail Token" from ZeptoMail UI
+      - key: ZEPTOMAIL_URL
+        value: https://api.zeptomail.in/v1.1/email
+      # --- SMTP (fallback, used only when ZEPTOMAIL_TOKEN is empty) ---
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
