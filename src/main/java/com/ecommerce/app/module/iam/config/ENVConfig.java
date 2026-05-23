@@ -17,15 +17,20 @@ public class ENVConfig {
 
     /**
      * Look up a config value. Order:
-     *   1. .env file (when present)
-     *   2. process environment
+     *   1. process environment   (real production config - always wins)
+     *   2. .env file              (developer convenience for local runs)
      * Returns null when neither has the key.
+     *
+     * Precedence is system-env-first on purpose: it stops a stray .env
+     * that sneaks into the runtime (Docker layer, working-dir surprise,
+     * etc.) from silently overriding values you set in the hosting
+     * dashboard (Render, Fly, etc.).
      */
     public static String get(String key){
-        String v = dotenv.get(key);
+        String v = System.getenv(key);
         if (v == null || v.isBlank()) {
-            v = System.getenv(key);
+            v = dotenv.get(key);
         }
-        return v;
+        return (v == null || v.isBlank()) ? null : v;
     }
 }

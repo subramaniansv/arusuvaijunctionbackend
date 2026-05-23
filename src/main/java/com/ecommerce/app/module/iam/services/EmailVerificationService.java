@@ -102,7 +102,11 @@ public class EmailVerificationService {
 
     private static String buildVerifyUrl(String rawToken) {
         String base = ENVConfig.get("APP_BASE_URL");
-        if (base == null || base.isBlank()) base = "http://localhost:8080/arusuvai";
+        if (base == null || base.isBlank()) {
+            throw new IllegalStateException(
+                "APP_BASE_URL is not set - cannot build email verification link. "
+                + "Set it in the hosting environment (e.g. Render dashboard).");
+        }
         // strip trailing slash
         if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
         return base + "/api/email-verify?token=" + rawToken;

@@ -90,6 +90,8 @@ public final class Main {
         tomcat.start();
         LOG.info("Arusuvai listening on http://localhost:{}{}", port, contextPath);
         LOG.info("Health probe: http://localhost:{}{}/health", port, contextPath);
+        LOG.info("APP_BASE_URL  = {}", com.ecommerce.app.module.iam.config.ENVConfig.get("APP_BASE_URL"));
+        LOG.info("APP_HOME_URL  = {}", com.ecommerce.app.module.iam.config.ENVConfig.get("APP_HOME_URL"));
 
         // Best-effort Elasticsearch bootstrap: create the index + alias
         // and seed it from Postgres. Runs in the background so a missing
