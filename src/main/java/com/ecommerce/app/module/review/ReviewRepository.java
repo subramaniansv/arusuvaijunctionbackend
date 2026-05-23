@@ -184,4 +184,48 @@ public class ReviewRepository {
         r.setCreatedAt(rs.getTimestamp("created_at"));
         return r;
     }
+
+    /**
+     * Featured reviews for the home page testimonial carousel.
+     *
+     * Filters:
+     *   - rating &gt;= 4 (only positive testimonials, by design)
+     *   - non-empty comment (silent 5-star ratings make poor testimonials)
+     *   - newest first
+     *
+     * Joins the users table for display name fallback and the products
+     * table so the UI can deep-link the testimonial to the SKU.
+     */
+    public List<Review> findFeatured(int limit) {
+        if (limit <= 0 || limit > 50) limit = 12;
+        String sql = """
+                SELECT r.review_id, r.user_id, r.product_id, r.rating, r.comment, r.created_at,
+                       u.email AS user_email,
+                       p.name  AS product_name
+                FROM reviews r
+                LEFT JOIN users    u ON u.user_id    = r.user_id
+                LEFT JOIN products p ON p.product_id = r.product_id
+                WHERE r.rating >= 4
+                  AND r.comment IS NOT NULL
+                  AND length(trim(r.comment)) > 0
+                ORDER BY r.created_at DESC
+                LIMIT ?
+                """;
+        List<Review> out = new ArrayList<>();
+        try (Connection c = DBConfig.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Review r = mapRow(rs);
+                    r.setUserEmail(rs.getString("user_email"));
+                    r.setProductName(rs.getString("product_name"));
+                    out.add(r);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.error("sql exception at findFeatured reviews ", e);
+        }
+        return out;
+    }
 }

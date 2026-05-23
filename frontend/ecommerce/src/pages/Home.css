@@ -47,11 +47,11 @@
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
-  min-height: 560px;
+  min-height: 100vh;
+  /* dvh keeps the hero exactly one viewport tall even when iOS
+     Safari's address bar collapses — no bottom gap. */
+  min-height: 100dvh;
 }
-
-@media (min-width: 768px)  { .home-hero { min-height: 640px; } }
-@media (min-width: 1280px) { .home-hero { min-height: 720px; } }
 
 /* Soft top veil so the dark headline stays legible on busier crops. */
 .home-hero__veil {
@@ -70,14 +70,10 @@
   position: relative;
   z-index: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
+  min-height: inherit;
   padding-block: var(--space-16) var(--space-20);
-}
-
-@media (min-width: 768px) {
-  .home-hero__inner {
-    padding-block: var(--space-20) var(--space-24);
-  }
 }
 
 .home-hero__copy {
@@ -319,16 +315,140 @@
   line-height: var(--line-height-normal);
 }
 
-/* ---------------- Reviews carousel --------------------------- */
-.home-reviews {
-  background: transparent !important;
-  padding-bottom: var(--space-12);
+/* ---------------- Reviews peek carousel ---------------------- */
+/*
+ * Three review cards sit on stage: prev, active, next.
+ * Active is full opacity, scaled to 1; the side cards hint at
+ * more content to come/past at reduced opacity + slight scale-down.
+ * Arrows + dot pagination sit BELOW the cards.
+ */
+.home-reviews-peek {
+  --peek-active-w: 460px;
+  --peek-side-w:   320px;
+  position: relative;
+  padding-block: var(--space-2) 0;
 }
 
-.home-reviews__slide {
-  padding: var(--space-2) var(--space-2) var(--space-10);
-  max-width: 720px;
-  margin: 0 auto;
+.home-reviews-peek__stage {
+  position: relative;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-reviews-peek__card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(var(--peek-active-w), 92vw);
+  transition:
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity   0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    filter    0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.home-reviews-peek__card--active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  z-index: 3;
+  filter: none;
+}
+
+.home-reviews-peek__card--prev,
+.home-reviews-peek__card--next {
+  width: min(var(--peek-side-w), 80vw);
+  opacity: 0.35;
+  filter: blur(0.5px) saturate(0.85);
+  cursor: pointer;
+  z-index: 1;
+}
+.home-reviews-peek__card--prev:hover,
+.home-reviews-peek__card--next:hover { opacity: 0.55; }
+
+.home-reviews-peek__card--prev {
+  transform: translate(calc(-50% - 280px), -50%) scale(0.85);
+}
+.home-reviews-peek__card--next {
+  transform: translate(calc(-50% + 280px), -50%) scale(0.85);
+}
+
+/* Side cards collapse on narrow screens so the active card has room. */
+@media (max-width: 900px) {
+  .home-reviews-peek__card--prev,
+  .home-reviews-peek__card--next { display: none; }
+  .home-reviews-peek__stage { height: 260px; }
+}
+
+@media (min-width: 1280px) {
+  .home-reviews-peek { --peek-active-w: 520px; --peek-side-w: 360px; }
+  .home-reviews-peek__card--prev { transform: translate(calc(-50% - 320px), -50%) scale(0.85); }
+  .home-reviews-peek__card--next { transform: translate(calc(-50% + 320px), -50%) scale(0.85); }
+}
+
+.home-reviews-peek__controls {
+  margin-top: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.home-reviews-peek__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-surface);
+  color: var(--brand-green-dark);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.home-reviews-peek__arrow:hover,
+.home-reviews-peek__arrow:focus-visible {
+  background: var(--brand-green);
+  border-color: var(--brand-green);
+  color: #ffffff;
+  transform: translateY(-1px);
+  outline: none;
+}
+.home-reviews-peek__arrow:active { transform: translateY(0); }
+
+.home-reviews-peek__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.home-reviews-peek__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: rgba(79, 106, 50, 0.25);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, width 0.2s ease;
+}
+.home-reviews-peek__dot:hover { background: rgba(79, 106, 50, 0.5); }
+.home-reviews-peek__dot.is-active {
+  background: var(--brand-yellow-dark);
+  width: 22px;
+  border-radius: var(--radius-pill);
+}
+
+.home-reviews__empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding-block: var(--space-8);
 }
 
 .home-reviews__skeletons {

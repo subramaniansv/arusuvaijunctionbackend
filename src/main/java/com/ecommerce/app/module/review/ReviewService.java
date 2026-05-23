@@ -35,6 +35,11 @@ public class ReviewService {
         return repo.findByProductId(productId, limit, offset);
     }
 
+    /** Recent high-rated reviews across all products, for the home page. */
+    public List<Review> getFeatured(int limit) {
+        return repo.findFeatured(limit);
+    }
+
     public ReviewSummary getSummary(UUID productId) {
         return repo.summaryForProduct(productId);
     }

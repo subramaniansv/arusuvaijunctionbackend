@@ -1,88 +1,63 @@
 /* ------------------------------------------------------------------
  * Reviews data hook.
  *
- * - useHomeReviews:    dummy featured reviews for the home page.
+ * - useHomeReviews:    GET /api/review?featured=true&limit=12
+ *                      (recent 4-5 star reviews with non-empty comment,
+ *                       across all products — testimonial carousel).
  * - useSubmitReview:   POST /api/review (auth + verified email required).
  * ------------------------------------------------------------------ */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './api'
 
-/* Dummy reviews used until the backend endpoint exists. ----------- */
-const DUMMY_REVIEWS = [
-  {
-    reviewId: 'r1',
-    rating: 5,
-    title: 'Tastes just like grandma made',
-    body: 'The murukku is exactly like my grandmother used to make - crispy, fresh, and so authentic. Will keep ordering!',
-    createdAt: '2026-04-12T10:00:00Z',
-    user: {
-      name: 'Priya Ramesh',
-      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120',
-    },
-    verifiedPurchase: true,
-  },
-  {
-    reviewId: 'r2',
-    rating: 5,
-    title: 'Quality is exceptional',
-    body: "Best homemade snacks I've found online. Delivery is always on time and the packaging keeps everything fresh.",
-    createdAt: '2026-03-28T08:30:00Z',
-    user: {
-      name: 'Karthik Kumar',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120',
-    },
-    verifiedPurchase: true,
-  },
-  {
-    reviewId: 'r3',
-    rating: 5,
-    title: 'Authentic seedai!',
-    body: 'Finally found someone who makes authentic seedai. The taste takes me right back to my childhood in Madurai.',
-    createdAt: '2026-03-19T14:15:00Z',
-    user: {
-      name: 'Lakshmi Iyer',
-      avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120',
-    },
-    verifiedPurchase: true,
-  },
-  {
-    reviewId: 'r4',
-    rating: 4,
-    title: 'Loved the mixture',
-    body: 'Spice level is perfect - not too hot, not too mild. The ladoos in the same order were divine too.',
-    createdAt: '2026-02-29T12:00:00Z',
-    user: {
-      name: 'Anand S.',
-      avatarUrl: '',
-    },
-    verifiedPurchase: false,
-  },
-  {
-    reviewId: 'r5',
-    rating: 5,
-    title: 'Diwali order was a hit',
-    body: 'Ordered a festival hamper for Diwali and every relative asked where I got it from. Will be a regular customer.',
-    createdAt: '2026-01-08T17:45:00Z',
-    user: {
-      name: 'Meena Sundaram',
-      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120',
-    },
-    verifiedPurchase: true,
-  },
-]
+/**
+ * Turn an email like "priya.ramesh@gmail.com" into a privacy-respecting
+ * display name "Priya R.". Falls back to "Customer" if email is missing.
+ */
+function emailToDisplayName(email) {
+  if (!email || typeof email !== 'string') return 'Customer'
+  const local = email.split('@')[0] || ''
+  if (!local) return 'Customer'
+  const parts = local
+    .replace(/[._-]+/g, ' ')
+    .replace(/\d+/g, '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (parts.length === 0) return 'Customer'
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+  if (parts.length === 1) return cap(parts[0])
+  return `${cap(parts[0])} ${parts[1].charAt(0).toUpperCase()}.`
+}
 
 /**
- * Fetch featured reviews for the home page.
- *
- * NOTE (backend swap): replace the body with a real api.get(...)
- * once the endpoint ships. The DTO shape above is already aligned
- * with what we'll expose, so the call-site code does not need to
- * change.
+ * Adapt the backend Review DTO to the shape ReviewCard expects.
+ * Backend: { reviewId, userId, productId, rating, comment, createdAt,
+ *            userEmail, productName }
+ * UI:      { reviewId, rating, title, body, createdAt, user, verifiedPurchase }
  */
+function adaptReview(r) {
+  return {
+    reviewId: r.reviewId,
+    productId: r.productId,
+    productName: r.productName || null,
+    rating: r.rating,
+    title: r.productName ? `On ${r.productName}` : '',
+    body: r.comment || '',
+    createdAt: r.createdAt,
+    user: {
+      name: emailToDisplayName(r.userEmail),
+      avatarUrl: '',
+    },
+    verifiedPurchase: true,
+  }
+}
+
 async function fetchHomeReviews() {
-  // Simulate network latency so the skeleton state is exercised.
-  await new Promise((r) => setTimeout(r, 600))
-  return DUMMY_REVIEWS
+  const res = await api.get('/api/review', {
+    params: { featured: 'true', limit: 12 },
+  })
+  const list = res.data?.data?.reviews ?? []
+  return list.map(adaptReview)
 }
 
 export function useHomeReviews() {
@@ -116,6 +91,8 @@ export function useSubmitReview(productId) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['product', productId] })
+      qc.invalidateQueries({ queryKey: ['reviews', 'home'] })
     },
   })
 }
+

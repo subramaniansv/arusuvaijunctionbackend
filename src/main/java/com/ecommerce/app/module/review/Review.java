@@ -12,6 +12,8 @@ public class Review {
     private Timestamp createdAt;
     // Display-only, joined from users table when present.
     private String userEmail;
+    // Display-only, joined from products table when present (featured feed).
+    private String productName;
 
     public UUID getReviewId() { return reviewId; }
     public void setReviewId(UUID reviewId) { this.reviewId = reviewId; }
@@ -33,4 +35,7 @@ public class Review {
 
     public String getUserEmail() { return userEmail; }
     public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
 }

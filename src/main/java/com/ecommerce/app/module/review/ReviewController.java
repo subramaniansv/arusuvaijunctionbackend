@@ -39,6 +39,20 @@ public class ReviewController extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Featured testimonials feed for the home page.
+        // GET /api/review?featured=true&limit=12   -> public, no productId required.
+        boolean featured = "true".equalsIgnoreCase(request.getParameter("featured"));
+        if (featured) {
+            int limit = parseIntOrDefault(request.getParameter("limit"), 12);
+            if (limit <= 0 || limit > 50) limit = 12;
+            List<Review> featuredReviews = service.getFeatured(limit);
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("reviews", featuredReviews);
+            SendResponseUtil.sendResponse(
+                    new ApiResponse(true, "featured reviews fetched", payload, 200), response);
+            return;
+        }
+
         String productIdParam = request.getParameter("productId");
         if (productIdParam == null || productIdParam.isBlank()) {
             SendResponseUtil.sendResponse(new ApiResponse(false, "productId is required", null, 400), response);

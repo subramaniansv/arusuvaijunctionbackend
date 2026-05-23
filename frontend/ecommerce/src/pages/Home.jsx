@@ -11,11 +11,13 @@
  * backend endpoint exists.
  */
 import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Leaf,
   Clock,
   Heart,
   Shield,
+  ChevronLeft,
   ChevronRight,
   Phone,
   Mail,
@@ -29,7 +31,6 @@ import {
   Button,
   ProductCard,
   ReviewCard,
-  Carousel,
   Skeleton,
   Alert,
 } from '../components'
@@ -221,8 +222,8 @@ function Hero() {
             <Link to="/products" className="home-hero__btn home-hero__btn--primary">
               Explore Products
             </Link>
-            <Link to="/products" className="home-hero__btn home-hero__btn--secondary">
-              Shop Homemade Foods
+            <Link to="/contact" className="home-hero__btn home-hero__btn--secondary">
+              Contact Us
             </Link>
           </div>
         </div>
@@ -322,7 +323,7 @@ function WhyChooseUs() {
   )
 }
 
-/* ----- Reviews (carousel, backed by useHomeReviews) ----------- */
+/* ----- Reviews (peek carousel, backed by useHomeReviews) ----- */
 function Reviews() {
   const { data, isLoading, isError } = useHomeReviews()
 
@@ -330,8 +331,8 @@ function Reviews() {
     <section className="home-section">
       <Container size="xl">
         <Section
-          title="What Our Customers Say"
-          subtitle="Trusted by thousands of happy customers"
+          title="What our customers say"
+          subtitle="Verified reviews from across India"
           spacing="md"
         >
         {isLoading && (
@@ -356,23 +357,120 @@ function Reviews() {
           </Alert>
         )}
 
-        {!isLoading && !isError && data && (
-          <Carousel
-            autoPlay
-            interval={6000}
-            ariaLabel="Customer reviews"
-            className="home-reviews ui-carousel--light-dots"
-          >
-            {data.map((r) => (
-              <div className="home-reviews__slide" key={r.reviewId}>
-                <ReviewCard review={r} />
-              </div>
-            ))}
-          </Carousel>
+        {!isLoading && !isError && data && data.length > 0 && (
+          <ReviewsPeek reviews={data} />
+        )}
+
+        {!isLoading && !isError && data && data.length === 0 && (
+          <p className="home-reviews__empty">
+            Be the first to leave a review — every purchased product has a review form.
+          </p>
         )}
         </Section>
       </Container>
     </section>
+  )
+}
+
+/**
+ * ReviewsPeek — a 3-card peek carousel.
+ *
+ *   [ prev (faded) ][ active (full) ][ next (faded) ]
+ *
+ * Arrows sit BELOW the cards, centred, with dot pagination between
+ * them. Auto-advances every 6s; pauses when the user interacts.
+ */
+function ReviewsPeek({ reviews }) {
+  const count = reviews.length
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  const next = useCallback(
+    () => setIndex((i) => (i + 1) % count),
+    [count],
+  )
+  const prev = useCallback(
+    () => setIndex((i) => (i - 1 + count) % count),
+    [count],
+  )
+
+  useEffect(() => {
+    if (paused || count <= 1) return undefined
+    const t = setInterval(next, 6000)
+    return () => clearInterval(t)
+  }, [paused, next, count])
+
+  // Compute the 3 visible reviews (prev / active / next).
+  const at = (offset) => reviews[(index + offset + count) % count]
+  const slots = count === 1
+    ? [{ key: 'active', review: reviews[0], pos: 'active' }]
+    : [
+        { key: 'prev',   review: at(-1), pos: 'prev'   },
+        { key: 'active', review: at(0),  pos: 'active' },
+        { key: 'next',   review: at(1),  pos: 'next'   },
+      ]
+
+  return (
+    <div
+      className="home-reviews-peek"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Customer reviews"
+    >
+      <div className="home-reviews-peek__stage">
+        {slots.map(({ key, review, pos }) => (
+          <div
+            key={`${key}-${review.reviewId}`}
+            className={`home-reviews-peek__card home-reviews-peek__card--${pos}`}
+            aria-hidden={pos !== 'active'}
+            onClick={() => {
+              if (pos === 'prev') prev()
+              if (pos === 'next') next()
+            }}
+          >
+            <ReviewCard review={review} />
+          </div>
+        ))}
+      </div>
+
+      <div className="home-reviews-peek__controls" aria-label="Carousel navigation">
+        <button
+          type="button"
+          className="home-reviews-peek__arrow"
+          onClick={prev}
+          aria-label="Previous review"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        <div className="home-reviews-peek__dots" role="tablist">
+          {reviews.map((r, i) => (
+            <button
+              key={r.reviewId}
+              type="button"
+              role="tab"
+              aria-selected={i === index}
+              aria-label={`Go to review ${i + 1}`}
+              className={`home-reviews-peek__dot ${i === index ? 'is-active' : ''}`}
+              onClick={() => setIndex(i)}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="home-reviews-peek__arrow"
+          onClick={next}
+          aria-label="Next review"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+    </div>
   )
 }
 

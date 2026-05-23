@@ -18,37 +18,42 @@
 
 :root {
   /* 1. Brand palette --------------------------------------------- */
-  --brand-green:        #0F5D3A;
-  --brand-green-dark:   #0a4229;
-  --brand-green-light:  #e8f3ed;
-  --brand-yellow:       #D4A017;
-  --brand-yellow-light: #f9f3e3;
-  --brand-cream:        #FFFBF5;
+  /* Anchored to the watercolor hero (src/assets/image.png).
+     The hero established two leads — a deep olive headline and a
+     warm brown body — and we extend that palette site-wide so every
+     page feels like it came from the same painting. */
+  --brand-green:        #4f6a32;   /* hero "Fresh. Homemade." olive       */
+  --brand-green-dark:   #3d5b2a;   /* deeper olive for hover/active       */
+  --brand-green-light:  #eef0d8;   /* sage tint for fills + chip bg       */
+  --brand-yellow:       #c08842;   /* warm amber CTA                      */
+  --brand-yellow-dark:  #a85a1a;   /* hero "Arusuvai." warm brown         */
+  --brand-yellow-light: #fff8ec;   /* cream amber fill                    */
+  --brand-cream:        #fdf6df;   /* watercolor background cream         */
 
   /* 2. Semantic colors ------------------------------------------- */
   --color-bg:               var(--brand-cream);
   --color-bg-surface:       #ffffff;          /* cards, popovers   */
-  --color-bg-muted:         #f5f5f0;          /* subtle fills      */
-  --color-bg-secondary:     #FFF8E7;          /* accent fills      */
+  --color-bg-muted:         #f5f1e2;          /* subtle warm fill  */
+  --color-bg-secondary:     var(--brand-yellow-light);
 
-  --color-text:             #1a1a1a;
-  --color-text-muted:       #666666;
+  --color-text:             #2a2f1a;          /* warm near-black   */
+  --color-text-muted:       #6b6552;          /* warm muted ink    */
   --color-text-on-primary:  #ffffff;
   --color-text-on-accent:   #ffffff;
 
   --color-primary:          var(--brand-green);
   --color-primary-hover:    var(--brand-green-dark);
   --color-accent:           var(--brand-yellow);
-  --color-accent-hover:     #b88a14;
+  --color-accent-hover:     var(--brand-yellow-dark);
 
-  --color-success:          #1f8a4c;
+  --color-success:          #4f6a32;
   --color-warning:          var(--brand-yellow);
-  --color-danger:           #d4183d;
-  --color-info:             #2563eb;
+  --color-danger:           #c2410c;
+  --color-info:             #6b5b3a;
 
-  --color-border:           rgba(15, 93, 58, 0.10);
-  --color-border-strong:    rgba(15, 93, 58, 0.25);
-  --color-ring:             var(--brand-yellow);  /* focus ring    */
+  --color-border:           rgba(79, 106, 50, 0.14);
+  --color-border-strong:    rgba(79, 106, 50, 0.28);
+  --color-ring:             var(--brand-yellow-dark);  /* focus ring */
 
   /* 3. Typography ------------------------------------------------ */
   --font-display: 'Fraunces', Georgia, serif;
@@ -103,16 +108,16 @@
 
   /* 6. Shadows --------------------------------------------------- */
   --shadow-sm:
-    0 1px 2px rgba(15, 93, 58, 0.04);
+    0 1px 2px rgba(60, 50, 20, 0.05);
   --shadow-md:
-    0 1px 3px rgba(15, 93, 58, 0.05),
-    0 4px 12px rgba(15, 93, 58, 0.08);
+    0 1px 3px rgba(60, 50, 20, 0.06),
+    0 4px 12px rgba(60, 50, 20, 0.10);
   --shadow-lg:
-    0 4px 8px rgba(15, 93, 58, 0.08),
-    0 12px 24px rgba(15, 93, 58, 0.12);
+    0 4px 8px rgba(60, 50, 20, 0.10),
+    0 12px 24px rgba(60, 50, 20, 0.14);
   --shadow-xl:
-    0 10px 20px rgba(15, 93, 58, 0.10),
-    0 20px 48px rgba(15, 93, 58, 0.16);
+    0 10px 20px rgba(60, 50, 20, 0.12),
+    0 20px 48px rgba(60, 50, 20, 0.18);
 
   /* 7. Transitions ----------------------------------------------- */
   --ease-out:     cubic-bezier(0.4, 0, 0.2, 1);
