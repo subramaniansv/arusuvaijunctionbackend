@@ -17,6 +17,7 @@ import com.ecommerce.app.module.cart.CartController;
 import com.ecommerce.app.module.wishlist.WishlistController;
 import com.ecommerce.app.module.mail.MailController;
 import com.ecommerce.app.module.health.HealthController;
+import com.ecommerce.app.module.health.PingController;
 import com.ecommerce.app.module.iam.controllers.AuthController;
 import com.ecommerce.app.module.iam.controllers.EmailVerificationController;
 import com.ecommerce.app.module.iam.controllers.MeController;
@@ -173,6 +174,10 @@ public final class Main {
 
         // Health probes (multi-pattern: exact and sub-paths)
         mount(ctx, new HealthController(), "/health", "/health/*");
+
+        // Lightweight liveness ping for uptime monitors (UptimeRobot etc).
+        // No DB call — keeps Render warm without waking Neon every cycle.
+        mount(ctx, new PingController(), "/ping");
     }
 
     // --- low-level Tomcat plumbing -----------------------------------------
