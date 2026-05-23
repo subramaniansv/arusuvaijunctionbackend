@@ -102,6 +102,15 @@ export default function Cart() {
       <div className="cart__layout">
         {/* -------- items column -------- */}
         <section className="cart__items" aria-label="Cart items">
+          {/* Top action bar - keeps "Continue shopping" and "Clear cart"
+              within thumb reach instead of buried below a long list. */}
+          <div className="cart__actions cart__actions--top">
+            <Button as={Link} to="/products" variant="ghost" leftIcon={<ArrowLeft size={16} />}>
+              Continue shopping
+            </Button>
+            <ClearCartButton onClear={() => clearCart.mutate()} loading={clearCart.isPending} />
+          </div>
+
           {items.map((it) => (
             <CartRow
               key={it.cartItemId || `${it.productId}-${it.variantId || 'base'}`}
@@ -122,13 +131,6 @@ export default function Cart() {
               busy={updateItem.isPending || removeItem.isPending}
             />
           ))}
-
-          <div className="cart__actions">
-            <Button as={Link} to="/products" variant="ghost" leftIcon={<ArrowLeft size={16} />}>
-              Continue shopping
-            </Button>
-            <ClearCartButton onClear={() => clearCart.mutate()} loading={clearCart.isPending} />
-          </div>
         </section>
 
         {/* -------- summary column -------- */}
@@ -189,6 +191,8 @@ function CartRow({ item, onQtyChange, onRemove, busy }) {
         <img
           src={item.imageUrl || PLACEHOLDER}
           alt={item.productName}
+          loading="lazy"
+          decoding="async"
           onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
         />
       </Link>

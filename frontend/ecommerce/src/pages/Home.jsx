@@ -259,7 +259,7 @@ function Categories() {
                 className="home-cat"
               >
                 <div className="home-cat__media" style={{ background: c.color }}>
-                  <img src={c.image} alt={c.name} loading="lazy" />
+                  <img src={c.image} alt={c.name} loading="lazy" decoding="async" />
                 </div>
                 <h3 className="home-cat__name">{c.name}</h3>
                 <p className="home-cat__tamil">{c.tamil}</p>

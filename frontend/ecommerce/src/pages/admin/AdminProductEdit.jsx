@@ -343,6 +343,8 @@ export default function AdminProductEdit() {
                 <img
                   src={img.imageUrl}
                   alt=""
+                  loading="lazy"
+                  decoding="async"
                   className="admin-image-list__thumb"
                 />
                 <span className="admin-image-list__name">

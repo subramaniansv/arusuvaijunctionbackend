@@ -119,6 +119,8 @@ function OrderRow({ order }) {
               <img
                 src={it.imageUrl || PLACEHOLDER}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
               />
             </span>

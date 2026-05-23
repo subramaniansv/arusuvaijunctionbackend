@@ -33,6 +33,7 @@ export default function Avatar({ src, name = '', size = 'md', className, ...rest
           className="ui-avatar__img"
           onError={() => setErr(true)}
           loading="lazy"
+          decoding="async"
         />
       ) : (
         <span className="ui-avatar__initials">{getInitials(name)}</span>

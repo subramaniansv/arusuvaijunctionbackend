@@ -187,6 +187,7 @@ function WishlistTile({ item, onAdd, onBuyNow, onRemove, isAddingToCart }) {
           src={product.primaryImageUrl || PLACEHOLDER}
           alt={product.name || 'Product'}
           loading="lazy"
+          decoding="async"
           onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
         />
         {outOfStock && (

@@ -445,6 +445,8 @@ export default function Checkout() {
                     <img
                       src={it.imageUrl || PLACEHOLDER}
                       alt=""
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
                     />
                     <span className="checkout__line-qty" aria-hidden="true">{it.quantity}</span>

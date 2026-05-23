@@ -288,6 +288,8 @@ export default function ProductDetail() {
               <img
                 src={images[activeImg] || PLACEHOLDER}
                 alt={product.name}
+                fetchpriority="high"
+                decoding="async"
                 onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
               />
               {outOfStock && (
@@ -307,7 +309,7 @@ export default function ProductDetail() {
                     className={`pd__thumb ${i === activeImg ? 'is-active' : ''}`}
                     onClick={() => setActiveImg(i)}
                   >
-                    <img src={src} alt="" onError={(e) => { e.currentTarget.src = PLACEHOLDER }} />
+                    <img src={src} alt="" loading="lazy" decoding="async" onError={(e) => { e.currentTarget.src = PLACEHOLDER }} />
                   </button>
                 ))}
               </div>
@@ -346,9 +348,8 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {product.description && (
-              <p className="pd__desc">{product.description}</p>
-            )}
+            {/* The full description renders below in the
+                "About this product" panel - no duplicate here. */}
 
             {hasVariants && (
               <div className="pd__variants" role="radiogroup" aria-label="Select size">
@@ -472,33 +473,6 @@ export default function ProductDetail() {
           </article>
         </section>
 
-        {/* ---------- reviews ---------- */}
-        <section className="pd__reviews" aria-label="Customer reviews">
-          <div className="pd__section-head">
-            <h2 className="pd__panel-title">Customer reviews</h2>
-            {product.reviewCount > 0 && (
-              <span className="pd__panel-meta">
-                {Number(product.averageRating || 0).toFixed(1)} out of 5 · {product.reviewCount} review{product.reviewCount === 1 ? '' : 's'}
-              </span>
-            )}
-          </div>
-
-          <ReviewComposer productId={product.id || product.productId} />
-
-          {Array.isArray(product.reviews) && product.reviews.length > 0 ? (
-            <div className="pd__reviews-grid">
-              {product.reviews.map((r) => (
-                <ReviewCard key={r.reviewId} review={toReviewCardShape(r)} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              title="No reviews yet"
-              description="Be the first to share your thoughts after trying this product."
-            />
-          )}
-        </section>
-
         {/* ---------- recommendations ---------- */}
         {alsoBought.length > 0 && (
           <section className="pd__related" aria-label="Customers also bought">
@@ -543,6 +517,34 @@ export default function ProductDetail() {
             </div>
           </section>
         )}
+
+        {/* ---------- reviews (kept at the bottom so shoppers see
+             product info + related items first) ---------- */}
+        <section className="pd__reviews" aria-label="Customer reviews">
+          <div className="pd__section-head">
+            <h2 className="pd__panel-title">Customer reviews</h2>
+            {product.reviewCount > 0 && (
+              <span className="pd__panel-meta">
+                {Number(product.averageRating || 0).toFixed(1)} out of 5 · {product.reviewCount} review{product.reviewCount === 1 ? '' : 's'}
+              </span>
+            )}
+          </div>
+
+          <ReviewComposer productId={product.id || product.productId} />
+
+          {Array.isArray(product.reviews) && product.reviews.length > 0 ? (
+            <div className="pd__reviews-grid">
+              {product.reviews.map((r) => (
+                <ReviewCard key={r.reviewId} review={toReviewCardShape(r)} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="No reviews yet"
+              description="Be the first to share your thoughts after trying this product."
+            />
+          )}
+        </section>
       </Container>
 
       <ShareModal

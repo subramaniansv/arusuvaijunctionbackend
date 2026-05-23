@@ -83,6 +83,7 @@ export default function ProductCard({
           src={primaryImageUrl || PLACEHOLDER}
           alt={name}
           loading="lazy"
+          decoding="async"
           className="ui-product__img"
           onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
         />

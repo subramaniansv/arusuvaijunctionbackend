@@ -251,6 +251,8 @@ export default function AdminProductNew() {
                   <img
                     src={URL.createObjectURL(f)}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="admin-image-list__thumb"
                   />
                   <span className="admin-image-list__name">{f.name}</span>

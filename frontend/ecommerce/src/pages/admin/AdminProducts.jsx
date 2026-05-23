@@ -178,6 +178,8 @@ export default function AdminProducts() {
                   <img
                     src={p.primaryImageUrl}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="admin-product-cell__img"
                   />
                 ) : (

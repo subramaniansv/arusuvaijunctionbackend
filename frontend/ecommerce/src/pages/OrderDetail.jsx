@@ -169,6 +169,8 @@ export default function OrderDetail() {
                     <img
                       src={it.imageUrl || PLACEHOLDER}
                       alt=""
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
                     />
                   </Link>

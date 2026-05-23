@@ -35,6 +35,7 @@ import './App.css'
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { Analytics } from '@vercel/analytics/react'
 
 import RootLayout from './layouts/RootLayout'
 import {
@@ -129,9 +130,9 @@ function App() {
       </Suspense>
       <Toaster
         position="top-center"
-        containerStyle={{ top: '50%', transform: 'translateY(-50%)' }}
         toastOptions={{ duration: 3500 }}
       />
+      <Analytics />
     </BrowserRouter>
   )
 }

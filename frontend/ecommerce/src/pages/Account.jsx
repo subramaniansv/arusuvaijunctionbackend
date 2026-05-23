@@ -195,10 +195,7 @@ export default function Account() {
               </span>
             </dd>
           </div>
-          <div className="account-meta__row">
-            <dt><Calendar size={14} aria-hidden="true" />Member since</dt>
-            <dd>{formatDate(profile?.createdAt)}</dd>
-          </div>
+     
         </dl>
       </div>
 
