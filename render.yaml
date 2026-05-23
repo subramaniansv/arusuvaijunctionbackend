@@ -83,9 +83,9 @@ services:
     autoDeploy: true
     envVars:
       # Build-time: bakes the backend URL into the bundle so the
-      # browser calls api.onrender.com instead of /arusuvai.
+      # browser calls the deployed backend directly.
       - key: VITE_API_BASE
-        sync: false          # e.g. https://arusuvai-backend.onrender.com/arusuvai
+        value: https://arusuvaijunctionbackend.onrender.com/arusuvai
     routes:
       # SPA fallback — every unknown path serves index.html so the
       # React router can take over.
