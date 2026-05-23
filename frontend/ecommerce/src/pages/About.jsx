@@ -8,6 +8,8 @@
 import { Link } from 'react-router-dom'
 import { Leaf, Heart, Clock, ShieldCheck } from 'lucide-react'
 import { Button } from '../components'
+import Seo from '../components/Seo'
+import { organizationLd, breadcrumbLd } from '../lib/seo'
 import './StaticPage.css'
 
 const PILLARS = [
@@ -20,6 +22,18 @@ const PILLARS = [
 export default function About() {
   return (
     <div className="staticpage">
+      <Seo
+        title="About Arusuvai Junction — traditional Tamil snacks, made the healthy way"
+        description="The story behind Arusuvai Junction: family recipes, traditional methods, no white sugar, no preservatives. Healthy Indian snacks made with nuts, seeds and millets."
+        path="/about"
+        jsonLd={[
+          organizationLd(),
+          breadcrumbLd([
+            { name: 'Home', path: '/' },
+            { name: 'About', path: '/about' },
+          ]),
+        ]}
+      />
       <header className="staticpage__hero">
         <span className="staticpage__eyebrow">About us</span>
         <h1 className="staticpage__title">Traditional Tamil snacks, made the way they should be</h1>

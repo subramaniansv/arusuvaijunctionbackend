@@ -37,6 +37,14 @@ import {
   Alert,
 } from '../components'
 import { useHomeReviews } from '../lib/reviews'
+import Seo from '../components/Seo'
+import {
+  organizationLd,
+  websiteLd,
+  localBusinessLd,
+  faqLd,
+  BRAND,
+} from '../lib/seo'
 import './Home.css'
 
 /* ---------------- Dummy data (replace with API later) ----------- */
@@ -139,6 +147,39 @@ const CONTACTS = [
 export default function Home() {
   return (
     <div className="home">
+      <Seo
+        title={null /* uses brand default */}
+        description={`${BRAND.description} Shop sugar-free traditional Indian snacks online — murukku, laddoos, mixture, sweets — made with nuts, seeds and millets.`}
+        path="/"
+        keywords={BRAND.defaultKeywords}
+        jsonLd={[
+          organizationLd(),
+          websiteLd(),
+          localBusinessLd(),
+          faqLd([
+            {
+              q: 'Are Arusuvai Junction snacks really sugar-free?',
+              a: 'Yes. We sweeten our snacks with palm jaggery, dates, or country sugar instead of refined white sugar. Each product page lists the exact ingredients.',
+            },
+            {
+              q: 'What makes your snacks high in protein?',
+              a: 'We use generous amounts of nuts (almonds, cashews, peanuts), seeds (sesame, flax, sunflower) and millets — all naturally protein-rich.',
+            },
+            {
+              q: 'Do you ship pan-India?',
+              a: 'Yes, we ship across India. Orders are dispatched within 1–2 business days from Tirunelveli, Tamil Nadu.',
+            },
+            {
+              q: 'How long do the snacks stay fresh?',
+              a: 'Most products stay fresh for 30–45 days at room temperature in an air-tight container. Specific shelf life is shown on each product page.',
+            },
+            {
+              q: 'Are the snacks made with preservatives?',
+              a: 'Never. Our snacks contain zero artificial preservatives, colours or flavours — just traditional ingredients.',
+            },
+          ]),
+        ]}
+      />
       <Hero />
       <Categories />
       <Featured />

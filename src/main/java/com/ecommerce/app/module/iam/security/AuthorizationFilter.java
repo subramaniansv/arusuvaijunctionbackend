@@ -37,7 +37,7 @@ public class AuthorizationFilter implements Filter {
         }
         // Health probes are always public (Kubernetes / LB / uptime monitors
         // call these without a token).
-        if (path != null && (path.startsWith("/health") || path.equals("/ping"))) {
+        if (path != null && (path.startsWith("/health") || path.equals("/ping") || path.equals("/sitemap-products.xml"))) {
             chain.doFilter(request, response);
             return;
         }

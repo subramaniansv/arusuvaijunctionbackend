@@ -2,6 +2,8 @@
  * Privacy policy — plain, plain-English version. Not legal advice;
  * replace the body before going live in production.
  */
+import Seo from '../components/Seo'
+import { breadcrumbLd } from '../lib/seo'
 import './StaticPage.css'
 
 const LAST_UPDATED = 'May 2026'
@@ -9,6 +11,15 @@ const LAST_UPDATED = 'May 2026'
 export default function PrivacyPolicy() {
   return (
     <div className="staticpage">
+      <Seo
+        title="Privacy policy"
+        description="How Arusuvai Junction collects, uses and protects your personal information."
+        path="/policy/privacy"
+        jsonLd={breadcrumbLd([
+          { name: 'Home', path: '/' },
+          { name: 'Privacy policy', path: '/policy/privacy' },
+        ])}
+      />
       <header className="staticpage__hero">
         <span className="staticpage__eyebrow">Legal</span>
         <h1 className="staticpage__title">Privacy policy</h1>

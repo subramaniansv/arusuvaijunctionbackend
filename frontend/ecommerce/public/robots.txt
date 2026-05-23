@@ -1,0 +1,29 @@
+# robots.txt for arusuvaijunction.com
+# Allow all crawlers on public pages, block private + admin.
+
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /account
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /*?*utm_      # tracking params
+
+# Be friendly with image bots — we want products surfaced in image search.
+User-agent: Googlebot-Image
+Allow: /
+
+# Block obnoxious AI scrapers? (uncomment to deny training crawls)
+# User-agent: GPTBot
+# Disallow: /
+# User-agent: CCBot
+# Disallow: /
+# User-agent: ClaudeBot
+# Disallow: /
+
+Sitemap: https://www.arusuvaijunction.com/sitemap.xml

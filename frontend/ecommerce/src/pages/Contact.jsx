@@ -13,6 +13,8 @@ import { Mail, Phone, MapPin, MessageCircle, Send, CheckCircle2 } from 'lucide-r
 import {
   Button, Input, Textarea, Alert,
 } from '../components'
+import Seo from '../components/Seo'
+import { breadcrumbLd, localBusinessLd } from '../lib/seo'
 import { useSubmitContact } from '../lib/contact'
 import { useAuthStore } from '../stores/authStore'
 import './StaticPage.css'
@@ -64,6 +66,18 @@ export default function Contact() {
 
   return (
     <div className="staticpage">
+      <Seo
+        title="Contact Arusuvai Junction — Tirunelveli, Tamil Nadu"
+        description="Get in touch with Arusuvai Junction for orders, bulk enquiries or feedback. Based in Tirunelveli, Tamil Nadu. We reply within one working day."
+        path="/contact"
+        jsonLd={[
+          localBusinessLd(),
+          breadcrumbLd([
+            { name: 'Home', path: '/' },
+            { name: 'Contact', path: '/contact' },
+          ]),
+        ]}
+      />
       <header className="staticpage__hero">
         <span className="staticpage__eyebrow">Contact</span>
         <h1 className="staticpage__title">We&apos;d love to hear from you</h1>

@@ -3,11 +3,22 @@
  * the operations team confirms the final wording.
  */
 import { Link } from 'react-router-dom'
+import Seo from '../components/Seo'
+import { breadcrumbLd } from '../lib/seo'
 import './StaticPage.css'
 
 export default function ReturnPolicy() {
   return (
     <div className="staticpage">
+      <Seo
+        title="Return & refund policy"
+        description="Returns, refunds and replacement policy for Arusuvai Junction orders."
+        path="/policy/returns"
+        jsonLd={breadcrumbLd([
+          { name: 'Home', path: '/' },
+          { name: 'Returns', path: '/policy/returns' },
+        ])}
+      />
       <header className="staticpage__hero">
         <span className="staticpage__eyebrow">Legal</span>
         <h1 className="staticpage__title">Return &amp; refund policy</h1>

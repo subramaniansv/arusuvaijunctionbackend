@@ -180,6 +180,9 @@ public final class Main {
         // Lightweight liveness ping for uptime monitors (UptimeRobot etc).
         // No DB call — keeps Render warm without waking Neon every cycle.
         mount(ctx, new PingController(), "/ping");
+
+        // SEO: dynamic product sitemap consumed by Google Search Console.
+        mount(ctx, new com.ecommerce.app.module.seo.SitemapServlet(), "/sitemap-products.xml");
     }
 
     // --- low-level Tomcat plumbing -----------------------------------------

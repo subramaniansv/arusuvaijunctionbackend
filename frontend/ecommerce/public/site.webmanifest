@@ -1,0 +1,14 @@
+{
+  "name": "Arusuvai Junction",
+  "short_name": "Arusuvai",
+  "description": "Traditional and modern Indian snacks made with nuts, seeds and millets — no white sugar, packed with natural protein.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffdf6",
+  "theme_color": "#a85a1a",
+  "lang": "en-IN",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ]
+}

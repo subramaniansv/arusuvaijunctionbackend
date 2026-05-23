@@ -50,6 +50,8 @@ import { useAddToCart } from '../lib/cart'
 import { useSubmitReview } from '../lib/reviews'
 import { useMyProfile } from '../lib/me'
 import { useAuthStore } from '../stores/authStore'
+import Seo from '../components/Seo'
+import { productLd, breadcrumbLd } from '../lib/seo'
 import './ProductDetail.css'
 
 const PLACEHOLDER =
@@ -254,6 +256,21 @@ export default function ProductDetail() {
 
   return (
     <div className="pd">
+      <Seo
+        title={`${product.name} — buy online`}
+        description={(product.description || '').slice(0, 158) || `Buy ${product.name} online from Arusuvai Junction.`}
+        path={`/products/${product.id ?? product.productId}`}
+        image={product.primaryImageUrl || (Array.isArray(product.images) && (product.images[0]?.imageUrl || product.images[0]?.url))}
+        type="product"
+        jsonLd={[
+          productLd(product, `/products/${product.id ?? product.productId}`),
+          breadcrumbLd([
+            { name: 'Home', path: '/' },
+            { name: 'Products', path: '/products' },
+            { name: product.name, path: `/products/${product.id ?? product.productId}` },
+          ]),
+        ]}
+      />
       <Container size="xl">
         {/* ---------- back link ---------- */}
         <nav className="pd__crumbs" aria-label="Breadcrumb">

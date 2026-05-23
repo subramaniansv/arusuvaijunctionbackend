@@ -33,6 +33,8 @@ import {
 } from '../components'
 import { useProducts, useCategories } from '../lib/products'
 import { useAddToCart } from '../lib/cart'
+import Seo from '../components/Seo'
+import { breadcrumbLd, BRAND } from '../lib/seo'
 import { useAuthStore } from '../stores/authStore'
 import './Products.css'
 
@@ -182,6 +184,23 @@ export default function Products() {
 
   return (
     <div className="products">
+      <Seo
+        title={
+          filters.q
+            ? `Search results for “${filters.q}”`
+            : filters.category
+              ? `${filters.category} — traditional Indian snacks`
+              : 'Shop all snacks — traditional, sugar-free, protein-rich'
+        }
+        description={`Browse Arusuvai Junction\u2019s full range of traditional Indian snacks: murukku, laddoos, mixture, sweets and more. ${BRAND.tagline}`}
+        path={filters.q ? '/products' : '/products'}
+        noindex={Boolean(filters.q)}
+        keywords={BRAND.defaultKeywords}
+        jsonLd={breadcrumbLd([
+          { name: 'Home', path: '/' },
+          { name: 'Products', path: '/products' },
+        ])}
+      />
       <Container size="xl">
         <div className="products__layout">
           {/* sidebar */}

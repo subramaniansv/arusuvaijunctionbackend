@@ -1,17 +1,47 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ecommerce</title>
+    <meta name="theme-color" content="#a85a1a" />
+
+    <!-- Default metadata. Each route overrides these via <Seo />. -->
+    <title>Arusuvai Junction — Traditional Indian snacks, sugar-free with nuts & seeds</title>
+    <meta
+      name="description"
+      content="Arusuvai Junction makes traditional and modern Indian snacks crafted with nuts, seeds, millets and natural sweeteners. Sugar-free, protein-rich, preservative-free — flavours of home, made the healthy way."
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://www.arusuvaijunction.com/" />
+
+    <!-- Open Graph defaults -->
+    <meta property="og:site_name" content="Arusuvai Junction" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Arusuvai Junction — Traditional Indian snacks, sugar-free with nuts & seeds" />
+    <meta property="og:description" content="Sugar-free, protein-rich, preservative-free traditional & modern Indian snacks." />
+    <meta property="og:url" content="https://www.arusuvaijunction.com/" />
+    <meta property="og:image" content="https://www.arusuvaijunction.com/og-default.jpg" />
+    <meta property="og:locale" content="en_IN" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Icons + manifest -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Performance: pre-connect to common third parties -->
+    <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin />
+    <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
+
     <!-- Razorpay Checkout SDK. Loads window.Razorpay used by the
          payment flow. Test-mode keys (rzp_test_*) are served from the
          same script - the SDK switches based on the key id you hand it. -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      Arusuvai Junction — traditional Indian sugar-free snacks. Please enable JavaScript to shop.
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
