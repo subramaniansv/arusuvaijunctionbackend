@@ -1,0 +1,122 @@
+/* Shared form-field styles used by Input, PasswordInput, Textarea, Select */
+.ui-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+}
+
+.ui-field--full { display: flex; width: 100%; }
+
+.ui-field__label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.ui-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.ui-field__control:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.25);
+}
+
+.ui-field.is-invalid .ui-field__control {
+  border-color: var(--color-danger);
+}
+.ui-field.is-invalid .ui-field__control:focus-within {
+  box-shadow: 0 0 0 3px rgba(212, 24, 61, 0.18);
+}
+
+.ui-field.is-disabled .ui-field__control {
+  background: var(--color-bg-muted);
+  opacity: 0.7;
+}
+
+.ui-field__input,
+.ui-field__textarea,
+.ui-field__select {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  outline: none;
+  border-radius: inherit;
+}
+
+.ui-field__input::placeholder,
+.ui-field__textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.ui-field__textarea {
+  min-height: 6rem;
+  resize: vertical;
+  line-height: var(--line-height-relaxed);
+}
+
+.ui-field__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  padding: 0 var(--space-3);
+}
+
+.ui-field__icon > svg { width: 1.125em; height: 1.125em; }
+
+.ui-field__icon--left  + .ui-field__input { padding-left: 0; }
+.ui-field__input:has(+ .ui-field__icon--right) { padding-right: 0; }
+
+.ui-field__hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.ui-field__error {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+}
+
+/* Custom select arrow */
+.ui-field__select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3e%3cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23666' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4) center;
+  padding-right: var(--space-10);
+  cursor: pointer;
+}
+
+/* Password show/hide toggle */
+.ui-field__toggle {
+  background: transparent;
+  border: 0;
+  padding: 0 var(--space-3);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+.ui-field__toggle:hover { color: var(--color-primary); }

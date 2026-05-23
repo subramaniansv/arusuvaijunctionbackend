@@ -1,0 +1,26 @@
+# Backend ignore list — keeps the Docker build context small.
+.git
+.gitignore
+.github
+.vscode
+.idea
+.DS_Store
+*.iml
+
+# build outputs (will be rebuilt inside the image)
+target/
+
+# secrets — supply at runtime, never bake into the image
+.env
+.env.*
+!.env.example
+
+# frontend lives in its own image
+frontend/
+
+# docs / local helpers
+*.md
+*.log
+nohup.out
+docker-compose*.yml
+render.yaml

@@ -1,0 +1,49 @@
+# One-command local stack:
+#   docker compose up --build
+#
+# The DB (Neon), R2, Razorpay and SMTP are all SaaS, so we don't ship
+# any data containers — secrets are loaded from .env in the repo root.
+# Do NOT commit .env (see .gitignore).
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: arusuvai-backend:local
+    container_name: arusuvai-backend
+    env_file:
+      - .env
+    environment:
+      PORT: 8080
+      CONTEXT_PATH: /arusuvai
+      # When behind the nginx container the public URL is the frontend
+      # service. Override per-deployment.
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080/arusuvai}
+      APP_HOME_URL: ${APP_HOME_URL:-https://www.arusuvaijunction.com}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/arusuvai/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend/ecommerce
+      dockerfile: Dockerfile
+      args:
+        # Same-origin: browser hits the nginx container, which proxies
+        # /arusuvai/* into the backend container.
+        VITE_API_BASE: /arusuvai
+    image: arusuvai-frontend:local
+    container_name: arusuvai-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:80"
+    restart: unless-stopped

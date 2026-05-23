@@ -1,0 +1,21 @@
+# Starter synonym list for Indian sweets / snacks vocabulary.
+# Used by the `product_synonym` filter in the `products_v1` index.
+# Format: comma-separated synonyms, one group per line.
+# Extend freely; restart the app OR call POST /api/product/search/reindex
+# after editing so the new analyzer takes effect.
+laddu, laddoo, ladoo
+mithai, sweet, sweets
+ghee, clarified butter
+namkeen, savoury, savory, savouries, snack, snacks
+murukku, muruku, chakli
+pak, paak
+burfi, barfi
+adhirasam, athirasam, ariselu
+mysore pak, mysorepak
+podi, gunpowder
+rasam, charu
+sambar, sambhar
+chutney, thuvaiyal, thogayal
+millet, millets, siruthaniyam
+pickle, pickles, oorugai, achar
+beverage, beverages, drink, drinks

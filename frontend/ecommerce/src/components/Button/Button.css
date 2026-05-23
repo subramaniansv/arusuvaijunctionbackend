@@ -1,0 +1,142 @@
+.ui-btn {
+  --btn-bg: var(--color-primary);
+  --btn-bg-hover: var(--color-primary-hover);
+  --btn-fg: var(--color-text-on-primary);
+  --btn-border: transparent;
+  --btn-px: var(--space-5);
+  --btn-py: var(--space-3);
+  --btn-fs: var(--text-base);
+  --btn-radius: var(--radius-md);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--btn-py) var(--btn-px);
+  font-family: var(--font-body);
+  font-size: var(--btn-fs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid var(--btn-border);
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* When Button is rendered `as={Link}` the element becomes <a>, which
+ * inherits the global `a:hover { color, text-decoration: underline }`
+ * rule from base.css. Lock both down here so the button keeps its
+ * own foreground color on hover (otherwise primary CTAs go invisible
+ * against the green hover background). */
+.ui-btn,
+.ui-btn:hover,
+.ui-btn:focus,
+.ui-btn:active,
+.ui-btn:visited {
+  text-decoration: none;
+  color: var(--btn-fg);
+}
+
+.ui-btn:hover:not(:disabled) {
+  background: var(--btn-bg-hover);
+  color: var(--btn-fg);
+}
+
+.ui-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.ui-btn:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.ui-btn:disabled,
+.ui-btn.is-loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Variants ------------------------------------------------------- */
+.ui-btn--primary {
+  /* defaults already set above */
+}
+
+.ui-btn--secondary {
+  --btn-bg: var(--color-bg-surface);
+  --btn-bg-hover: var(--color-bg-muted);
+  --btn-fg: var(--color-primary);
+  --btn-border: var(--color-border-strong);
+}
+
+.ui-btn--ghost {
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--color-bg-muted);
+  --btn-fg: var(--color-text);
+  --btn-border: transparent;
+}
+
+.ui-btn--danger {
+  --btn-bg: var(--color-danger);
+  --btn-bg-hover: #b1142f;
+  --btn-fg: #ffffff;
+}
+
+.ui-btn--accent {
+  --btn-bg: var(--color-accent);
+  --btn-bg-hover: var(--color-accent-hover);
+  --btn-fg: var(--color-text);
+}
+
+/* Sizes ---------------------------------------------------------- */
+.ui-btn--sm {
+  --btn-px: var(--space-3);
+  --btn-py: var(--space-2);
+  --btn-fs: var(--text-sm);
+}
+
+.ui-btn--md {
+  /* defaults */
+}
+
+.ui-btn--lg {
+  --btn-px: var(--space-6);
+  --btn-py: var(--space-4);
+  --btn-fs: var(--text-lg);
+  --btn-radius: var(--radius-lg);
+}
+
+/* Modifiers ------------------------------------------------------ */
+.ui-btn--full {
+  width: 100%;
+}
+
+.ui-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-btn__icon > svg {
+  width: 1em;
+  height: 1em;
+}
+
+.ui-btn__label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-btn__spinner {
+  margin-right: var(--space-1);
+}

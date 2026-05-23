@@ -1,0 +1,65 @@
+.ui-iconbtn {
+  --ib-size: 2.5rem;
+  --ib-bg: transparent;
+  --ib-bg-hover: var(--color-bg-muted);
+  --ib-fg: var(--color-text);
+  --ib-border: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ib-size);
+  height: var(--ib-size);
+  padding: 0;
+  background: var(--ib-bg);
+  color: var(--ib-fg);
+  border: 1px solid var(--ib-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.ui-iconbtn:hover:not(:disabled) {
+  background: var(--ib-bg-hover);
+}
+
+.ui-iconbtn:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.ui-iconbtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-iconbtn > svg {
+  width: 1.125em;
+  height: 1.125em;
+}
+
+/* Variants */
+.ui-iconbtn--ghost { }
+
+.ui-iconbtn--outline {
+  --ib-border: var(--color-border-strong);
+}
+
+.ui-iconbtn--solid {
+  --ib-bg: var(--color-primary);
+  --ib-bg-hover: var(--color-primary-hover);
+  --ib-fg: var(--color-text-on-primary);
+}
+
+/* Shapes */
+.ui-iconbtn--round {
+  border-radius: var(--radius-pill);
+}
+
+/* Sizes */
+.ui-iconbtn--sm { --ib-size: 2rem;   font-size: var(--text-sm);  }
+.ui-iconbtn--md { --ib-size: 2.5rem; font-size: var(--text-base); }
+.ui-iconbtn--lg { --ib-size: 3rem;   font-size: var(--text-lg);  }

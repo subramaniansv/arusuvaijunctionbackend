@@ -1,0 +1,8 @@
+/* ------------------------------------------------------------------
+ * Web fonts. Loaded from Google Fonts so the bundle stays small.
+ * - Fraunces : display / headings (serif, optical sizing)
+ * - Manrope  : body text (sans)
+ * - Noto Sans Tamil : Tamil-language labels (.tamil-text utility)
+ * If you go offline-first later, self-host these and swap the @import.
+ * ------------------------------------------------------------------ */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Manrope:wght@300;400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');

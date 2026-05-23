@@ -1,0 +1,59 @@
+/* Heart toggle used on product cards and product detail.
+   `icon` variant: floating round button matching ui-product__share.
+   `inline` variant: bigger, flat button for sitting next to CTAs. */
+
+.ui-wishlist {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s, transform .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ui-wishlist:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.ui-wishlist:hover {
+  color: #e11d48;
+}
+
+.ui-wishlist.is-active {
+  color: #e11d48;
+}
+
+/* ---------- icon variant (floating, used on product cards) ---------- */
+.ui-wishlist--icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.ui-wishlist--icon:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+/* ---------- inline variant (next to Add to cart / Buy now) ---------- */
+.ui-wishlist--inline {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, #fff);
+  border-color: var(--color-border, #e6e6e6);
+}
+
+.ui-wishlist--inline:hover {
+  border-color: #e11d48;
+}
+
+.ui-wishlist--inline.is-active {
+  border-color: #e11d48;
+  background: #fff1f3;
+}

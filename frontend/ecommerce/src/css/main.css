@@ -1,0 +1,13 @@
+/* ------------------------------------------------------------------
+ * Entry point. Import order matters:
+ *   1. fonts     - load typefaces
+ *   2. theme     - design tokens (must come before anything that uses var(--...))
+ *   3. base      - element resets + defaults
+ *   4. utilities - reusable classes / components
+ *
+ * Only this file needs to be linked from index.html.
+ * ------------------------------------------------------------------ */
+@import './fonts.css';
+@import './theme.css';
+@import './base.css';
+@import './utilities.css';

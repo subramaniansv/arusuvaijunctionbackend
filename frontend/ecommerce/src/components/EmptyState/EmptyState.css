@@ -1,0 +1,46 @@
+.ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-16) var(--space-6);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.ui-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--space-3);
+  background: var(--brand-green-light);
+  color: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+.ui-empty__icon > svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.ui-empty__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+}
+
+.ui-empty__desc {
+  margin: 0;
+  max-width: 28rem;
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.ui-empty__action { margin-top: var(--space-4); }

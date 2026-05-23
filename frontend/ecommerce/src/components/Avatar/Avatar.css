@@ -1,0 +1,32 @@
+.ui-avatar {
+  --av-size: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--av-size);
+  height: var(--av-size);
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--brand-green-light);
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-semibold);
+  font-size: calc(var(--av-size) * 0.4);
+  user-select: none;
+}
+
+.ui-avatar--xs { --av-size: 1.5rem; }
+.ui-avatar--sm { --av-size: 2rem;   }
+.ui-avatar--md { --av-size: 2.5rem; }
+.ui-avatar--lg { --av-size: 3.5rem; }
+.ui-avatar--xl { --av-size: 5rem;   }
+
+.ui-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ui-avatar__initials { line-height: 1; }

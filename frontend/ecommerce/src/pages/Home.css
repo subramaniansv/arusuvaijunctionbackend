@@ -1,0 +1,421 @@
+/* ==================================================================
+ * Home page styles. All values come from /css/theme.css tokens.
+ *
+ * Home opts OUT of RootLayout's `.container` (see RootLayout.jsx),
+ * so every section sits flush against the viewport edges. Each
+ * `<section className="home-section">` provides vertical spacing
+ * and an optional background tint; an inner `<Container size="xl">`
+ * keeps the actual content readable on wide screens.
+ * ================================================================== */
+
+.home { display: flex; flex-direction: column; }
+
+/* Generic section wrapper -- every non-hero homepage band uses this
+ * so widths, padding, and title alignment stay consistent. */
+.home-section {
+  width: 100%;
+  padding-block: var(--space-4);
+}
+.home-section--tint {
+  background: var(--color-bg-surface);
+}
+
+/* Center-align every Section header inside the home page. Stacks the
+ * title above any `action` slot so layouts like Featured Products
+ * still read clearly on narrow screens. */
+.home .ui-section__head {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  justify-content: center;
+}
+.home .ui-section__action { align-self: center; }
+.home .ui-section__subtitle { max-width: 42rem; margin-inline: auto; }
+
+/* ---------------- Hero --------------------------------------- */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg,
+      var(--brand-green-light) 0%,
+      var(--color-bg-surface) 50%,
+      var(--brand-yellow-light) 100%);
+}
+
+.home-hero__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0,
+    transparent 35px,
+    var(--brand-green) 35px,
+    var(--brand-green) 36px
+  );
+}
+
+.home-hero__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+  align-items: center;
+  padding-block: var(--space-16) var(--space-20);
+}
+
+@media (min-width: 768px) {
+  .home-hero__inner {
+    grid-template-columns: 1fr 1fr;
+    padding-block: var(--space-20) var(--space-24);
+  }
+}
+
+.home-hero__copy { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.home-hero__eyebrow {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.home-hero__title {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+@media (min-width: 768px) { .home-hero__title { font-size: var(--text-5xl); } }
+
+.home-hero__title--accent { color: var(--color-primary); }
+
+.home-hero__tamil {
+  margin: 0;
+  font-family: var(--font-tamil);
+  font-size: var(--text-xl);
+  color: var(--color-primary);
+}
+
+.home-hero__lead {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+  max-width: 32rem;
+}
+
+.home-hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.home-hero__ctas .ui-btn { border-radius: var(--radius-pill); }
+
+/* Hero media + carousel */
+.home-hero__media {
+  position: relative;
+  display: none;
+}
+@media (min-width: 768px) { .home-hero__media { display: block; } }
+
+.home-hero__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+.home-hero__blob--yellow {
+  top: -1.5rem; right: -1.5rem;
+  width: 8rem; height: 8rem;
+  background: var(--color-accent);
+}
+.home-hero__blob--green {
+  bottom: -1.5rem; left: -1.5rem;
+  width: 10rem; height: 10rem;
+  background: var(--color-primary);
+}
+
+.home-hero__carousel {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+.home-hero__slide {
+  width: 100%;
+  height: 100%;
+}
+.home-hero__slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---------------- Categories --------------------------------- */
+.home-cats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+@media (min-width: 640px)  { .home-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); } }
+@media (min-width: 1024px) { .home-cats { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-6); } }
+
+.home-cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  gap: var(--space-2);
+}
+
+.home-cat__media {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: var(--space-1);
+}
+
+.home-cat__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+.home-cat:hover .home-cat__media img { transform: scale(1.08); }
+
+.home-cat__name {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.home-cat__tamil {
+  margin: 0;
+  font-family: var(--font-tamil);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* ---------------- 4-up product grid -------------------------- */
+.home-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+@media (min-width: 768px)  { .home-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-6); } }
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  transition: gap var(--duration-fast) var(--ease-out);
+}
+.home-link:hover { gap: var(--space-2); }
+
+/* ---------------- Why choose us ------------------------------ */
+.home-why {
+  background: linear-gradient(135deg, var(--brand-green-light) 0%, var(--color-bg) 100%);
+}
+
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+@media (min-width: 768px) { .home-features { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-8); } }
+
+.home-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+}
+
+.home-feature__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: var(--color-bg-surface);
+  color: var(--color-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-2);
+}
+
+.home-feature__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.home-feature__desc {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* ---------------- Reviews carousel --------------------------- */
+.home-reviews {
+  background: transparent !important;
+  padding-bottom: var(--space-12);
+}
+
+.home-reviews__slide {
+  padding: var(--space-2) var(--space-2) var(--space-10);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.home-reviews__skeletons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+.home-review-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.home-review-skeleton__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: auto;
+}
+
+/* ---------------- Contact + quick links (footer strip) -------
+ * Dark-green panel that anchors the bottom of the page. Text +
+ * icons are recolored for contrast on green. */
+.home-contact {
+  background: var(--brand-green-dark);
+  color: #ffffff;
+  border-top: 0;
+  padding-block: var(--space-16) var(--space-12);
+}
+
+.home-contact__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+}
+@media (min-width: 768px) {
+  .home-contact__grid {
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--space-16);
+  }
+}
+
+.home-contact__heading {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: #ffffff;
+}
+
+.home-contact__sub {
+  margin: 0 0 var(--space-6);
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.home-contact__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-5);
+}
+
+.home-contact__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.home-contact__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-accent);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.home-contact__label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 2px;
+}
+
+.home-contact__value {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  color: #ffffff;
+}
+
+.home-quick-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3) var(--space-6);
+}
+
+.home-quick-links__a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  padding: var(--space-1) 0;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    gap var(--duration-fast) var(--ease-out);
+}
+.home-quick-links__a:hover {
+  color: var(--color-accent);
+  gap: var(--space-3);
+  text-decoration: none;
+}
+.home-quick-links__a > svg { color: var(--color-accent); flex-shrink: 0; }

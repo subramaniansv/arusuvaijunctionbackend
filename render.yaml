@@ -1,0 +1,98 @@
+# Render Blueprint — one-click deploy of the Arusuvai stack.
+# https://render.com/docs/blueprint-spec
+#
+# Push this file to GitHub, then in Render:
+#   Dashboard → New → Blueprint → pick this repo.
+#
+# Render will create both services. Fill in the env vars marked
+# `sync: false` in the dashboard (they are never committed).
+
+services:
+  # ───────────────── Backend (Java / Tomcat) ────────────────────────
+  - type: web
+    name: arusuvai-backend
+    runtime: docker
+    plan: starter            # bump to standard for production
+    region: singapore        # closest to Neon ap-southeast-1 / India users
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /arusuvai/health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: CONTEXT_PATH
+        value: /arusuvai
+      # ─── Filled in via the Render dashboard ────────────────────
+      - key: DB_URL
+        sync: false          # jdbc:postgresql://...neon.tech/neondb?sslmode=require
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_STARTTLS
+        value: "true"
+      - key: SMTP_SSL
+        value: "false"
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: MAIL_ENABLED
+        value: "true"
+      - key: STORAGE_PROVIDER
+        value: r2
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_PUBLIC_BASE_URL
+        sync: false
+      # Public origin of THIS service. After first deploy, copy the
+      # generated onrender.com URL into the dashboard for both of
+      # these (Render can't self-reference at create time).
+      - key: APP_BASE_URL
+        sync: false          # e.g. https://arusuvai-backend.onrender.com/arusuvai
+      - key: APP_HOME_URL
+        value: https://www.arusuvaijunction.com
+
+  # ───────────────── Frontend (Vite static site) ────────────────────
+  - type: web
+    name: arusuvai-frontend
+    runtime: static
+    plan: starter
+    rootDir: frontend/ecommerce
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    envVars:
+      # Build-time: bakes the backend URL into the bundle so the
+      # browser calls api.onrender.com instead of /arusuvai.
+      - key: VITE_API_BASE
+        sync: false          # e.g. https://arusuvai-backend.onrender.com/arusuvai
+    routes:
+      # SPA fallback — every unknown path serves index.html so the
+      # React router can take over.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable

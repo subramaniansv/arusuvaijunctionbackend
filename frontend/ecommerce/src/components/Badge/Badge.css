@@ -1,0 +1,32 @@
+.ui-badge {
+  --bd-bg: var(--color-bg-muted);
+  --bd-fg: var(--color-text);
+  --bd-border: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
+  background: var(--bd-bg);
+  color: var(--bd-fg);
+  border: 1px solid var(--bd-border);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.ui-badge--pill   { border-radius: var(--radius-pill); padding: 0.125rem var(--space-3); }
+.ui-badge--sm     { font-size: 0.6875rem; padding: 0.0625rem var(--space-2); }
+.ui-badge--md     { /* defaults */ }
+
+.ui-badge--neutral { --bd-bg: var(--color-bg-muted);          --bd-fg: var(--color-text-muted); }
+.ui-badge--primary { --bd-bg: var(--brand-green-light);       --bd-fg: var(--color-primary); }
+.ui-badge--accent  { --bd-bg: var(--brand-yellow-light);      --bd-fg: #8a6a0e; }
+.ui-badge--success { --bd-bg: #e3f5ea;                        --bd-fg: var(--color-success); }
+.ui-badge--warning { --bd-bg: var(--brand-yellow-light);      --bd-fg: #8a6a0e; }
+.ui-badge--danger  { --bd-bg: #fde4ea;                        --bd-fg: var(--color-danger); }
+.ui-badge--info    { --bd-bg: #e0ecff;                        --bd-fg: var(--color-info); }

@@ -1,0 +1,130 @@
+.ui-product {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+.ui-product__media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--color-bg-muted);
+  overflow: hidden;
+}
+
+.ui-product__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.ui-product:hover .ui-product__img {
+  transform: scale(1.04);
+}
+
+.ui-product__media-badges {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  display: flex;
+  gap: var(--space-1);
+  z-index: 1;
+}
+
+.ui-product__share {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+  cursor: pointer;
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+.ui-product__share:hover { background: #fff; transform: scale(1.05); }
+.ui-product__share:active { transform: scale(0.95); }
+
+/* Wishlist heart sits below the share button on the right edge. */
+.ui-product__wish {
+  position: absolute;
+  top: calc(var(--space-2) + 36px);
+  right: var(--space-2);
+  z-index: 2;
+}
+
+.ui-product__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 251, 245, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.ui-product__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .ui-product__body { padding: var(--space-4); gap: var(--space-3); }
+}
+
+/* Product name -- body font (not the display serif) reads better in
+ * dense catalog tiles. 2-line clamp with reserved min-height keeps
+ * every card aligned regardless of name length. */
+.ui-product__name {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: var(--line-height-snug);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(var(--text-sm) * var(--line-height-snug) * 2);
+}
+
+@media (min-width: 640px) {
+  .ui-product__name {
+    font-size: var(--text-base);
+    min-height: calc(var(--text-base) * var(--line-height-snug) * 2);
+  }
+}
+
+/* Footer -- stack price + button so narrow cards never break the
+ * layout. Add button is full-width for a single, prominent CTA. */
+.ui-product__footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  padding-top: var(--space-1);
+}
+
+.ui-product__add { width: 100%; }
+
+/* Compact variant for recommendation strips */
+.ui-product--compact .ui-product__body { padding: var(--space-3); gap: var(--space-2); }
+.ui-product--compact .ui-product__name { font-size: var(--text-sm); }
+.ui-product--compact .ui-product__media { aspect-ratio: 1 / 1; }

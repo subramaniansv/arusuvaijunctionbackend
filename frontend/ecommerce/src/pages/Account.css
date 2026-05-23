@@ -1,0 +1,303 @@
+/* Account page (profile + change password).
+   Two card layout, with a small avatar circle, meta grid, and a tight
+   password form. Reuses the global .btn / .form-* tokens.
+   The whole page caps at ~720px so the form doesn't stretch awkwardly
+   on wide screens. */
+
+.account {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  gap: 1.25rem;
+}
+
+.account__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 .25rem;
+}
+
+.account__skeleton,
+.account__error {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--surface, #fafafa);
+  border: 1px solid var(--border, #e6e6e6);
+  color: var(--text-muted, #666);
+  text-align: center;
+}
+
+.account__error {
+  color: #b00020;
+  border-color: #f3c2c8;
+  background: #fdf2f3;
+}
+
+/* ---------- card shell ---------- */
+
+.account-card {
+  background: #fff;
+  border: 1px solid var(--border, #e6e6e6);
+  border-radius: 14px;
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.account-card__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.account-card__header--simple {
+  margin-bottom: .75rem;
+}
+
+.account-card__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-card__name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.account-card__email {
+  margin: .15rem 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--text-muted, #666);
+  font-size: .875rem;
+  word-break: break-all;
+}
+
+/* ---------- avatar ---------- */
+
+.account-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f4a261, #e76f51);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: .04em;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  flex: 0 0 auto;
+}
+
+/* ---------- admin badge ---------- */
+
+.account-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .25rem .55rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.account-badge--admin {
+  background: #eef6ff;
+  color: #1e3a8a;
+  border: 1px solid #c9def9;
+}
+
+.account-badge--verified {
+  background: #e8f6ee;
+  color: #0f5d3a;
+  border: 1px solid #c1e2cf;
+}
+
+.account-badge--unverified {
+  background: #fff4e5;
+  color: #92400e;
+  border: 1px solid #fcd9a8;
+}
+
+/* ---------- profile meta ---------- */
+
+.account-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .55rem;
+  margin: 0;
+  padding-top: .75rem;
+  border-top: 1px dashed var(--border, #e6e6e6);
+}
+
+.account-meta__row {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: .35rem 0;
+}
+
+.account-meta__row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  color: var(--text-muted, #666);
+  font-size: .85rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.account-meta__row dd {
+  margin: 0;
+  font-size: .95rem;
+  color: var(--text, #1f1f1f);
+  word-break: break-word;
+}
+
+@media (max-width: 480px) {
+  .account-meta__row {
+    grid-template-columns: 1fr;
+    gap: .15rem;
+    padding: .5rem 0;
+  }
+}
+
+/* ---------- status pill ---------- */
+
+.account-status {
+  display: inline-block;
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #dcdffb;
+}
+
+.account-status--active {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #b5eccd;
+}
+
+.account-status--suspended,
+.account-status--banned,
+.account-status--blocked {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #f5c1c1;
+}
+
+/* ---------- password form ---------- */
+
+.account-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-field {
+  display: grid;
+  gap: .35rem;
+}
+
+.form-field label {
+  font-size: .85rem;
+  font-weight: 500;
+  color: var(--text, #1f1f1f);
+}
+
+.form-field input {
+  width: 100%;
+  padding: .55rem .75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border, #d4d4d4);
+  background: #fff;
+  font-size: .95rem;
+  line-height: 1.4;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: #e76f51;
+  box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.18);
+}
+
+.form-field input[aria-invalid="true"] {
+  border-color: #b00020;
+}
+
+.form-input-wrap {
+  position: relative;
+}
+
+.form-input-wrap input {
+  padding-right: 2.5rem;
+}
+
+.form-input-toggle {
+  position: absolute;
+  right: .35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: .35rem;
+  color: var(--text-muted, #666);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.form-input-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text, #1f1f1f);
+}
+
+.form-hint {
+  margin: 0;
+  font-size: .75rem;
+  color: var(--text-muted, #666);
+}
+
+.form-error {
+  margin: 0;
+  font-size: .8rem;
+  color: #b00020;
+}
+
+.account-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .25rem;
+}
+
+.account-form__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.spin {
+  animation: account-spin 0.9s linear infinite;
+}
+
+@keyframes account-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Profile-card badge cluster (Verified + Admin). */
+.account-card__badges {
+  display: inline-flex;
+  gap: .4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}

@@ -1,0 +1,21 @@
+.ui-skeleton {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-muted) 0%,
+    rgba(15, 93, 58, 0.06) 50%,
+    var(--color-bg-muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: ui-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.ui-skeleton--sm   { border-radius: var(--radius-sm); }
+.ui-skeleton--md   { border-radius: var(--radius-md); }
+.ui-skeleton--lg   { border-radius: var(--radius-lg); }
+.ui-skeleton--pill { border-radius: var(--radius-pill); }
+
+@keyframes ui-skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

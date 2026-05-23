@@ -1,0 +1,35 @@
+# ---------------- secrets ----------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------------- backend build ----------------
+target/
+*.class
+
+# ---------------- IDE / tooling ----------------
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# ---------------- OS noise ----------------
+.DS_Store
+Thumbs.db
+
+# ---------------- logs / tmp ----------------
+*.log
+nohup.out
+
+# ---------------- frontend ----------------
+frontend/ecommerce/node_modules/
+frontend/ecommerce/dist/
+frontend/ecommerce/.vite/
+frontend/ecommerce/npm-debug.log*
+frontend/ecommerce/.env
+frontend/ecommerce/.env.*
+!frontend/ecommerce/.env.example
