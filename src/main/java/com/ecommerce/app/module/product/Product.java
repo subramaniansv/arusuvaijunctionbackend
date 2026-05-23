@@ -13,6 +13,15 @@ public class Product{
     private String description;
     private String category;
     private String ingredients;
+    // Optional Tamil-script copy of the corresponding English fields.
+    // We keep the English field as the primary value used by search +
+    // schema.org JSON-LD (so Google/AI engines can summarise the page),
+    // and render the Tamil string as a small subtitle / secondary block
+    // for trust + cultural authenticity. Tamil fields are nullable on
+    // the DB to keep existing rows working with no migration of data.
+    private String nameTamil;
+    private String descriptionTamil;
+    private String ingredientsTamil;
     private double price;
     private int stockQuantity;
     private boolean isActive;
@@ -65,6 +74,12 @@ public class Product{
     public void setIngredients(String ingredients) {
         this.ingredients = ingredients;
     }
+    public String getNameTamil() { return nameTamil; }
+    public void setNameTamil(String nameTamil) { this.nameTamil = nameTamil; }
+    public String getDescriptionTamil() { return descriptionTamil; }
+    public void setDescriptionTamil(String descriptionTamil) { this.descriptionTamil = descriptionTamil; }
+    public String getIngredientsTamil() { return ingredientsTamil; }
+    public void setIngredientsTamil(String ingredientsTamil) { this.ingredientsTamil = ingredientsTamil; }
     public double getPrice() {
         return price;
     }

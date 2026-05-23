@@ -22,11 +22,14 @@ public class ProductRepository {
                     description,
                     category,
                     ingredients,
+                    name_tamil,
+                    description_tamil,
+                    ingredients_tamil,
                     price,
                     stock_quantity,
                     is_active
                 )
-                VALUES (?,?,?,?,?,?,?,?)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)
                 """;
 
         try (Connection connection = DBConfig.getConnection();
@@ -39,9 +42,12 @@ public class ProductRepository {
             ps.setString(3, product.getDescription());
             ps.setString(4, product.getCategory());
             ps.setString(5, product.getIngredients());
-            ps.setDouble(6, product.getPrice());
-            ps.setInt(7, product.getStockQuantity());
-            ps.setBoolean(8, product.isActive());
+            ps.setString(6, emptyToNull(product.getNameTamil()));
+            ps.setString(7, emptyToNull(product.getDescriptionTamil()));
+            ps.setString(8, emptyToNull(product.getIngredientsTamil()));
+            ps.setDouble(9, product.getPrice());
+            ps.setInt(10, product.getStockQuantity());
+            ps.setBoolean(11, product.isActive());
 
             ps.executeUpdate();
 
@@ -131,7 +137,9 @@ public class ProductRepository {
 
         String sql = """
                 SELECT p.product_id, p.name, p.description, p.category,
-                       p.ingredients, p.price, p.stock_quantity, p.is_active,
+                       p.ingredients, p.name_tamil, p.description_tamil,
+                       p.ingredients_tamil,
+                       p.price, p.stock_quantity, p.is_active,
                        p.created_at, p.updated_at,
                        pi.image_url AS primary_image_url,
                        COALESCE(r.avg_rating, 0) AS avg_rating,
@@ -221,7 +229,9 @@ public class ProductRepository {
 
         String sql =
                 "SELECT p.product_id, p.name, p.description, p.category, "
-              + "       p.ingredients, p.price, p.stock_quantity, p.is_active, "
+              + "       p.ingredients, p.name_tamil, p.description_tamil, "
+              + "       p.ingredients_tamil, "
+              + "       p.price, p.stock_quantity, p.is_active, "
               + "       p.created_at, p.updated_at, "
               + "       pi.image_url AS primary_image_url, "
               + "       COALESCE(r.avg_rating, 0) AS avg_rating, "
@@ -319,6 +329,9 @@ public class ProductRepository {
                     description = ?,
                     category = ?,
                     ingredients = ?,
+                    name_tamil = ?,
+                    description_tamil = ?,
+                    ingredients_tamil = ?,
                     price = ?,
                     stock_quantity = ?,
                     is_active = ?
@@ -332,10 +345,13 @@ public class ProductRepository {
             ps.setString(2, product.getDescription());
             ps.setString(3, product.getCategory());
             ps.setString(4, product.getIngredients());
-            ps.setDouble(5, product.getPrice());
-            ps.setInt(6, product.getStockQuantity());
-            ps.setBoolean(7, product.isActive());
-            ps.setObject(8, product.getId());
+            ps.setString(5, emptyToNull(product.getNameTamil()));
+            ps.setString(6, emptyToNull(product.getDescriptionTamil()));
+            ps.setString(7, emptyToNull(product.getIngredientsTamil()));
+            ps.setDouble(8, product.getPrice());
+            ps.setInt(9, product.getStockQuantity());
+            ps.setBoolean(10, product.isActive());
+            ps.setObject(11, product.getId());
 
             int rows = ps.executeUpdate();
 
@@ -917,6 +933,13 @@ public class ProductRepository {
 
         product.setIngredients(rs.getString("ingredients"));
 
+        // Tamil fields are nullable + were added in a later migration.
+        // Read defensively so legacy DBs without the columns do not
+        // break the row mapping. Returns null if the column is missing.
+        product.setNameTamil(getStringIfPresent(rs, "name_tamil"));
+        product.setDescriptionTamil(getStringIfPresent(rs, "description_tamil"));
+        product.setIngredientsTamil(getStringIfPresent(rs, "ingredients_tamil"));
+
         product.setPrice(rs.getDouble("price"));
 
         product.setStockQuantity(rs.getInt("stock_quantity"));
@@ -928,5 +951,24 @@ public class ProductRepository {
         product.setUpdatedAt(rs.getTimestamp("updated_at"));
 
         return product;
+    }
+
+    // Returns the column value, or null if the column is not present
+    // in the current ResultSet. Used for fields that may not exist in
+    // an older schema.
+    private static String getStringIfPresent(ResultSet rs, String col) {
+        try {
+            return rs.getString(col);
+        } catch (SQLException ignored) {
+            return null;
+        }
+    }
+
+    // Normalises empty strings to NULL before persisting so the DB
+    // stores a clean absence-of-value for optional fields.
+    private static String emptyToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }
