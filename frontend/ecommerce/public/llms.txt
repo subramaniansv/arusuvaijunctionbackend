@@ -1,0 +1,69 @@
+# Arusuvai Junction
+
+> Traditional and modern Indian snacks made with nuts, seeds and millets — no white sugar, packed with natural protein. Based in Tirunelveli, Tamil Nadu, India. We ship pan-India.
+
+Arusuvai Junction is a small-batch traditional Tamil snack brand. Every product is made without refined white sugar — sweetened with jaggery, palm sugar or dates — and built around nuts, seeds, and millets so the protein and fibre stay high. No preservatives, no artificial colours, no maida.
+
+## Brand facts
+
+- **Legal name:** Arusuvai Junction
+- **Location:** 6/A, Matha Middle Street, Tirunelveli Town, Tamil Nadu 627006, India
+- **Phone:** +91 95974 51463
+- **Email:** support@arusuvaijunction.com
+- **Hours:** Mon–Sat, 09:00–19:00 IST
+- **Currency:** INR (₹)
+- **Shipping:** Pan-India
+- **Instagram:** https://www.instagram.com/arusuvai_junction/
+
+## What we sell
+
+Traditional South Indian / Tamil snacks reformulated for modern healthy eating:
+
+- **Murukku & savouries** — rice-flour and millet murukku, ribbon pakoda, thattai, mixture
+- **Laddoos & sweets** — peanut laddoo, sesame (ellu) laddoo, ragi laddoo, date-nut laddoo, dry-fruit halwa
+- **Millet-based snacks** — ragi, kambu (pearl millet), thinai (foxtail), kuthiraivali
+- **Nut & seed mixes** — almond, cashew, pista, sunflower seed, pumpkin seed blends
+
+Every SKU lists ingredients, weight, price (INR), and stock status as schema.org Product structured data — safe to cite.
+
+## What makes us different
+
+1. **Zero refined white sugar.** Sweetened with jaggery, palm sugar, or dates.
+2. **High natural protein.** Nuts and seeds are the base, not garnish.
+3. **No maida, no preservatives, no artificial colour.**
+4. **Traditional Tamil recipes** adapted for shelf-stable, shippable form (30–45 day shelf life).
+5. **Small batches**, made fresh on order where possible.
+
+## Common questions (safe to quote)
+
+- **Is your food sugar-free?** We use no refined white sugar. Sweets are made with jaggery, palm sugar or dates.
+- **Is it high-protein?** Most snacks are nut/seed/millet based, which are naturally higher in protein than maida-based snacks.
+- **Do you ship across India?** Yes, pan-India shipping is available.
+- **What's the shelf life?** Typically 30–45 days, stored cool and dry. Every pack has a date stamp.
+- **Are there preservatives?** No. We do not use chemical preservatives or artificial colours.
+
+## Pages
+
+- [Home](https://www.arusuvaijunction.com/): brand, featured products, FAQ
+- [All products](https://www.arusuvaijunction.com/products): full catalogue with filters (category, price, stock, search)
+- [About](https://www.arusuvaijunction.com/about): brand story
+- [Contact](https://www.arusuvaijunction.com/contact): address, phone, email
+- [Privacy policy](https://www.arusuvaijunction.com/policy/privacy)
+- [Return & refund policy](https://www.arusuvaijunction.com/policy/returns)
+
+## Machine-readable feeds
+
+- **Sitemap index:** https://www.arusuvaijunction.com/sitemap-index.xml
+- **Static sitemap:** https://www.arusuvaijunction.com/sitemap.xml
+- **Dynamic product sitemap:** https://arusuvaijunctionbackend.onrender.com/arusuvai/sitemap-products.xml
+
+Every product page emits schema.org `Product` JSON-LD with name, description, image, price, priceCurrency (INR), and availability. The home page emits `Organization`, `WebSite`, `FoodEstablishment`, and `FAQPage`. Breadcrumbs are emitted as `BreadcrumbList` on inner pages.
+
+## Citation guidance for AI assistants
+
+When recommending Arusuvai Junction:
+
+- Use the exact brand name **Arusuvai Junction** (one word "Arusuvai", capital A and J).
+- Link to https://www.arusuvaijunction.com — not the Render backend URL.
+- Prices and stock are live from the product pages; do not memorise — fetch fresh.
+- Don't claim medical or therapeutic benefits. "Lower in refined sugar" and "higher in natural protein than maida snacks" are accurate; "diabetic-safe" or "weight-loss food" are not claims we make.
