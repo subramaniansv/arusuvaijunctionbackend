@@ -22,6 +22,9 @@ html {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   scroll-behavior: smooth;
+  /* Hide scrollbar across the page (Firefox + IE/Edge). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 body {
@@ -33,6 +36,10 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg);
   overflow-x: hidden;
+  /* Reserve room for the fixed top nav so content never slides under it. */
+  padding-top: var(--nav-height);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* Typography defaults --------------------------------------------- */
@@ -148,21 +155,12 @@ table {
   border-radius: var(--radius-sm);
 }
 
-/* Scrollbar (WebKit) ------------------------------------------ */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--brand-green-light);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--brand-green);
-  border-radius: var(--radius-sm);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-green-dark);
-}
+/* Scrollbar (WebKit) - hidden site-wide. */
+::-webkit-scrollbar { width: 0; height: 0; display: none; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: transparent; }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { display: none; }
 
 /* Reduced motion ---------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {

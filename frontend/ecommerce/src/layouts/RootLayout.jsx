@@ -26,6 +26,7 @@ import toast from 'react-hot-toast'
 import { useAuthStore } from '../stores/authStore'
 import { useCartItemCount } from '../lib/cart'
 import { useMyProfile, useResendVerification } from '../lib/me'
+import Avatar from '../components/Avatar/Avatar.jsx'
 import './RootLayout.css'
 
 export default function RootLayout() {
@@ -55,14 +56,33 @@ export default function RootLayout() {
   // ---- mobile UI state ----
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const mobileInputRef = useRef(null)
+  const accountMenuRef = useRef(null)
 
   useEffect(() => {
     if (mobileSearchOpen) mobileInputRef.current?.focus()
   }, [mobileSearchOpen])
 
   // close drawer on route change
-  useEffect(() => { setDrawerOpen(false) }, [path])
+  useEffect(() => { setDrawerOpen(false); setAccountMenuOpen(false) }, [path])
+
+  // click-away + ESC to close account dropdown
+  useEffect(() => {
+    if (!accountMenuOpen) return undefined
+    const onDown = (e) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
+        setAccountMenuOpen(false)
+      }
+    }
+    const onKey = (e) => { if (e.key === 'Escape') setAccountMenuOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [accountMenuOpen])
 
   // close drawer on ESC + lock body scroll while open
   useEffect(() => {
@@ -274,9 +294,150 @@ export default function RootLayout() {
               )}
             </form>
 
-            {/* desktop nav cluster (>= 960px) */}
+            {/* desktop nav cluster (>= 960px):
+                 Products + Cart + Avatar dropdown. Everything else
+                 (Wishlist, Orders, Account, Admin, Verify, Logout)
+                 lives inside the avatar menu to keep the bar tidy. */}
             <nav className="nav__cluster" aria-label="Primary">
-              {renderNavItems(undefined)}
+              <NavLink
+                to="/products"
+                end
+                className={({ isActive }) => `nav__item${isActive ? ' is-active' : ''}`}
+              >
+                <ShoppingBag size={20} aria-hidden="true" />
+                <span>Products</span>
+              </NavLink>
+
+              <NavLink
+                to="/cart"
+                className={({ isActive }) => `nav__item${isActive ? ' is-active' : ''}`}
+                aria-label={
+                  isAuthed && cartCount > 0
+                    ? `Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}`
+                    : 'Cart'
+                }
+              >
+                <span className="nav__item-iconwrap">
+                  <ShoppingCart size={20} aria-hidden="true" />
+                  {isAuthed && cartCount > 0 && (
+                    <span className="nav__badge" aria-hidden="true">
+                      {cartCount > 99 ? '99+' : cartCount}
+                    </span>
+                  )}
+                </span>
+                <span>Cart</span>
+              </NavLink>
+
+              {isAuthed ? (
+                <div className="nav__account" ref={accountMenuRef}>
+                  <button
+                    type="button"
+                    className="nav__avatar-btn"
+                    aria-haspopup="menu"
+                    aria-expanded={accountMenuOpen}
+                    aria-label="Account menu"
+                    onClick={() => setAccountMenuOpen((v) => !v)}
+                  >
+                    <Avatar
+                      name={user?.firstName || user?.email || 'User'}
+                      size="sm"
+                    />
+                  </button>
+
+                  {accountMenuOpen && (
+                    <div
+                      className="nav__menu"
+                      role="menu"
+                      aria-label="Account"
+                    >
+                      {user && (
+                        <div className="nav__menu-head">
+                          <div className="nav__menu-name">
+                            {user.firstName || user.email || 'My account'}
+                          </div>
+                          {user.email && (
+                            <div className="nav__menu-email">{user.email}</div>
+                          )}
+                        </div>
+                      )}
+
+                      <NavLink
+                        to="/orders"
+                        className="nav__menu-item"
+                        role="menuitem"
+                        onClick={() => setAccountMenuOpen(false)}
+                      >
+                        <Package size={18} aria-hidden="true" />
+                        <span>Orders</span>
+                      </NavLink>
+
+                      <NavLink
+                        to="/account"
+                        className="nav__menu-item"
+                        role="menuitem"
+                        onClick={() => setAccountMenuOpen(false)}
+                      >
+                        <UserCircle size={18} aria-hidden="true" />
+                        <span>User profile</span>
+                      </NavLink>
+
+                      <NavLink
+                        to="/wishlist"
+                        className="nav__menu-item"
+                        role="menuitem"
+                        onClick={() => setAccountMenuOpen(false)}
+                      >
+                        <Heart size={18} aria-hidden="true" />
+                        <span>Wishlist</span>
+                      </NavLink>
+
+                      {isAdmin && (
+                        <NavLink
+                          to="/admin"
+                          className="nav__menu-item"
+                          role="menuitem"
+                          onClick={() => setAccountMenuOpen(false)}
+                        >
+                          <LayoutDashboard size={18} aria-hidden="true" />
+                          <span>Admin</span>
+                        </NavLink>
+                      )}
+
+                      {needsVerify && (
+                        <button
+                          type="button"
+                          className="nav__menu-item nav__menu-item--verify"
+                          role="menuitem"
+                          onClick={() => handleResendVerify(() => setAccountMenuOpen(false))}
+                          disabled={resendVerify.isPending}
+                        >
+                          {resendVerify.isPending
+                            ? <Loader2 size={16} className="spin" aria-hidden="true" />
+                            : <MailWarning size={16} aria-hidden="true" />}
+                          <span>Verify email</span>
+                        </button>
+                      )}
+
+                      <div className="nav__menu-sep" role="separator" />
+
+                      <button
+                        type="button"
+                        className="nav__menu-item"
+                        role="menuitem"
+                        onClick={() => { setAccountMenuOpen(false); onLogout() }}
+                      >
+                        <LogOut size={18} aria-hidden="true" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link to="/login" className="nav__item nav__item--cta">
+                  <LogIn size={18} aria-hidden="true" />
+                  <span>Login</span>
+                </Link>
+              )}
             </nav>
 
             {/* mobile right-side cluster: search toggle + cart */}

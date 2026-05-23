@@ -30,7 +30,7 @@ import {
   Section,
   Button,
   ProductCard,
-  ReviewCard,
+  RatingStars,
   Skeleton,
   Alert,
 } from '../components'
@@ -43,8 +43,11 @@ import {
   faqLd,
   BRAND,
 } from '../lib/seo'
-import heroBackground from '../assets/image.png'
 import './Home.css'
+
+// Public asset - served from /public/hero.jpg without bundling, so the
+// same URL can be preloaded from index.html for an instant LCP.
+const heroBackground = '/hero.jpg'
 
 /* ---------------- Dummy data (replace with API later) ----------- */
 
@@ -139,7 +142,13 @@ const CONTACTS = [
   {
     icon: MapPin,
     label: 'Visit us',
-    value: '6/A, Matha Middle Street, Tirunelveli Town, Tamil Nadu 627006',
+    value: (
+      <>
+        6/A, Matha Middle Street,<br />
+        Tirunelveli Town,<br />
+        Tamil Nadu 627006
+      </>
+    ),
     href: 'https://www.google.com/maps/search/?api=1&query=Arusuvai+Junction+Tirunelveli',
   },
 ]
@@ -373,17 +382,41 @@ function Reviews() {
 }
 
 /**
- * ReviewsPeek — a 3-card peek carousel.
+ * ReviewsPeek — responsive multi-card carousel.
  *
- *   [ prev (faded) ][ active (full) ][ next (faded) ]
+ * Shows N reviews side by side, all at full opacity:
+ *   >= 1024px → 3 cards
+ *   >= 640px  → 2 cards
+ *   < 640px   → 1 card
  *
- * Arrows sit BELOW the cards, centred, with dot pagination between
- * them. Auto-advances every 6s; pauses when the user interacts.
+ * Arrows + dot pagination sit BELOW the row. Auto-advances every 6s;
+ * pauses on hover/focus. The dots count corresponds to how many
+ * "pages" of `visible` cards the reviews divide into.
  */
+function useVisibleCount() {
+  const get = () => {
+    if (typeof window === 'undefined') return 3
+    if (window.matchMedia('(min-width: 1024px)').matches) return 3
+    if (window.matchMedia('(min-width: 640px)').matches) return 2
+    return 1
+  }
+  const [n, setN] = useState(get)
+  useEffect(() => {
+    const onResize = () => setN(get())
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return n
+}
+
 function ReviewsPeek({ reviews }) {
   const count = reviews.length
+  const visible = Math.min(useVisibleCount(), count)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+
+  // Clamp index when visible count changes (e.g. resize).
+  useEffect(() => { setIndex(0) }, [visible, count])
 
   const next = useCallback(
     () => setIndex((i) => (i + 1) % count),
@@ -395,20 +428,16 @@ function ReviewsPeek({ reviews }) {
   )
 
   useEffect(() => {
-    if (paused || count <= 1) return undefined
+    if (paused || count <= visible) return undefined
     const t = setInterval(next, 6000)
     return () => clearInterval(t)
-  }, [paused, next, count])
+  }, [paused, next, count, visible])
 
-  // Compute the 3 visible reviews (prev / active / next).
-  const at = (offset) => reviews[(index + offset + count) % count]
-  const slots = count === 1
-    ? [{ key: 'active', review: reviews[0], pos: 'active' }]
-    : [
-        { key: 'prev',   review: at(-1), pos: 'prev'   },
-        { key: 'active', review: at(0),  pos: 'active' },
-        { key: 'next',   review: at(1),  pos: 'next'   },
-      ]
+  // Build the visible slice with wrap-around so the carousel can loop.
+  const slots = Array.from({ length: visible }, (_, k) => {
+    const r = reviews[(index + k) % count]
+    return { key: `${index}-${k}-${r.reviewId}`, review: r }
+  })
 
   return (
     <div
@@ -421,19 +450,20 @@ function ReviewsPeek({ reviews }) {
       aria-roledescription="carousel"
       aria-label="Customer reviews"
     >
-      <div className="home-reviews-peek__stage">
-        {slots.map(({ key, review, pos }) => (
-          <div
-            key={`${key}-${review.reviewId}`}
-            className={`home-reviews-peek__card home-reviews-peek__card--${pos}`}
-            aria-hidden={pos !== 'active'}
-            onClick={() => {
-              if (pos === 'prev') prev()
-              if (pos === 'next') next()
-            }}
-          >
-            <ReviewCard review={review} />
-          </div>
+      <div
+        className="home-reviews-peek__row"
+        style={{ '--peek-visible': visible }}
+      >
+        {slots.map(({ key, review }) => (
+          <article key={key} className="home-review-simple">
+            <RatingStars value={review.rating} size="md" />
+            <p className="home-review-simple__body">
+              {review.body ? `“${review.body}”` : ''}
+            </p>
+            <div className="home-review-simple__name">
+              — {review.user?.name || 'Customer'}
+            </div>
+          </article>
         ))}
       </div>
 

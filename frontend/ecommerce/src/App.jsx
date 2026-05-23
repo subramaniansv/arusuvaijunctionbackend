@@ -32,6 +32,7 @@
  *     the user to /login (remembering where they came from).
  */
 import './App.css'
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
@@ -42,34 +43,46 @@ import {
   AdminRoute,
 } from './routes/guards'
 
+/* Eager: above-the-fold landing route. */
 import Home from './pages/Home'
-import Products from './pages/Products'
-import ProductDetail from './pages/ProductDetail'
-import Auth from './pages/Auth'
-import Cart from './pages/Cart'
-import Checkout from './pages/Checkout'
-import Orders from './pages/Orders'
-import OrderDetail from './pages/OrderDetail'
-import Account from './pages/Account'
-import Wishlist from './pages/Wishlist'
-import About from './pages/About'
-import Contact from './pages/Contact'
-import PrivacyPolicy from './pages/PrivacyPolicy'
-import ReturnPolicy from './pages/ReturnPolicy'
-import AdminLayout from './pages/admin/AdminLayout'
-import AdminProducts from './pages/admin/AdminProducts'
-import AdminProductNew from './pages/admin/AdminProductNew'
-import AdminProductEdit from './pages/admin/AdminProductEdit'
-import AdminOrders from './pages/admin/AdminOrders'
-import AdminUsers from './pages/admin/AdminUsers'
-import AdminMessages from './pages/admin/AdminMessages'
-import NotFound from './pages/NotFound'
+
+/* Lazy: every other route is split into its own chunk so the initial
+   bundle stays small. React.lazy + Suspense lets Vite emit one chunk
+   per page on `npm run build`. */
+const Products        = lazy(() => import('./pages/Products'))
+const ProductDetail   = lazy(() => import('./pages/ProductDetail'))
+const Auth            = lazy(() => import('./pages/Auth'))
+const Cart            = lazy(() => import('./pages/Cart'))
+const Checkout        = lazy(() => import('./pages/Checkout'))
+const Orders          = lazy(() => import('./pages/Orders'))
+const OrderDetail     = lazy(() => import('./pages/OrderDetail'))
+const Account         = lazy(() => import('./pages/Account'))
+const Wishlist        = lazy(() => import('./pages/Wishlist'))
+const About           = lazy(() => import('./pages/About'))
+const Contact         = lazy(() => import('./pages/Contact'))
+const PrivacyPolicy   = lazy(() => import('./pages/PrivacyPolicy'))
+const ReturnPolicy    = lazy(() => import('./pages/ReturnPolicy'))
+const AdminLayout       = lazy(() => import('./pages/admin/AdminLayout'))
+const AdminProducts     = lazy(() => import('./pages/admin/AdminProducts'))
+const AdminProductNew   = lazy(() => import('./pages/admin/AdminProductNew'))
+const AdminProductEdit  = lazy(() => import('./pages/admin/AdminProductEdit'))
+const AdminOrders       = lazy(() => import('./pages/admin/AdminOrders'))
+const AdminUsers        = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminMessages     = lazy(() => import('./pages/admin/AdminMessages'))
+const NotFound          = lazy(() => import('./pages/NotFound'))
+
+/* Tiny placeholder while a route chunk is being fetched. Keep it
+   visually empty so it doesn't shift layout. */
+function RouteFallback() {
+  return <div style={{ minHeight: '60vh' }} aria-busy="true" />
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<RootLayout />}>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route element={<RootLayout />}>
           {/* Public */}
           <Route index element={<Home />} />
           <Route path="products" element={<Products />} />
@@ -112,7 +125,8 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Route>
-      </Routes>
+        </Routes>
+      </Suspense>
       <Toaster
         position="top-center"
         containerStyle={{ top: '50%', transform: 'translateY(-50%)' }}

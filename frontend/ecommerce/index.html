@@ -28,14 +28,21 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Performance: pre-connect to common third parties -->
+    <!-- Performance: pre-connect + DNS-prefetch to the Razorpay
+         checkout origin. The actual SDK script is now injected by
+         the React app only when the user reaches checkout, so the
+         home page no longer pays the ~30 KB request on first load. -->
     <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin />
     <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
 
-    <!-- Razorpay Checkout SDK. Loads window.Razorpay used by the
-         payment flow. Test-mode keys (rzp_test_*) are served from the
-         same script - the SDK switches based on the key id you hand it. -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+    <!-- Preload the hero background so the LCP image starts
+         downloading in parallel with the JS bundle. -->
+    <link
+      rel="preload"
+      as="image"
+      href="/hero.jpg"
+      fetchpriority="high"
+    />
   </head>
   <body>
     <div id="root"></div>

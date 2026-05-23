@@ -47,17 +47,25 @@
 @media (min-width: 960px) {
   .products__sidebar {
     position: sticky;
-    top: var(--space-6);
+    /* Align with the sidebar's natural y so it does NOT move on scroll:
+         nav-height (body padding) + main padding-block (--space-8)
+         + page padding-block top (--space-6). */
+    top: calc(var(--nav-height) + var(--space-8) + var(--space-6));
     transform: none;
     width: auto;
     align-self: flex-start;
-    max-height: calc(100vh - var(--space-10));
+    max-height: calc(100vh - var(--nav-height) - var(--space-10));
     background: transparent;
     border-right: 0;
     box-shadow: none;
     padding: 0;
   }
-  .products__close { display: none; }
+}
+
+/* The close (✖) button is only meaningful while the sidebar is an
+   off-canvas drawer. Hide it on laptop+ where the sidebar is static. */
+@media (min-width: 768px) {
+  .products__close { display: none !important; }
 }
 
 .products__sidebar-head {

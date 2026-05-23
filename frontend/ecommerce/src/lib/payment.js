@@ -20,6 +20,39 @@ import toast from 'react-hot-toast'
 import { api } from './api'
 
 /* ------------------------------------------------------------------
+ * Lazy-load the Razorpay Checkout SDK on demand. The <script> is no
+ * longer in index.html so the home page doesn't pay for it. The first
+ * caller injects the tag; subsequent callers reuse the same Promise.
+ * ------------------------------------------------------------------ */
+const RZP_SRC = 'https://checkout.razorpay.com/v1/checkout.js'
+let razorpayPromise = null
+function loadRazorpayScript() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('no window'))
+  if (window.Razorpay) return Promise.resolve(window.Razorpay)
+  if (razorpayPromise) return razorpayPromise
+  razorpayPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${RZP_SRC}"]`)
+    const onOk = () => resolve(window.Razorpay)
+    const onErr = () => {
+      razorpayPromise = null
+      reject(new Error('Failed to load Razorpay SDK'))
+    }
+    if (existing) {
+      existing.addEventListener('load', onOk, { once: true })
+      existing.addEventListener('error', onErr, { once: true })
+      return
+    }
+    const s = document.createElement('script')
+    s.src = RZP_SRC
+    s.async = true
+    s.onload = onOk
+    s.onerror = onErr
+    document.head.appendChild(s)
+  })
+  return razorpayPromise
+}
+
+/* ------------------------------------------------------------------
  * Phase 1 - initiate (raw mutation, exported for completeness)
  * ------------------------------------------------------------------ */
 export function usePaymentInitiate() {
@@ -70,9 +103,18 @@ export function useRazorpayCheckout() {
   const qc = useQueryClient()
 
   return async function payWithRazorpay(checkoutPayload, prefill = {}) {
-    if (typeof window === 'undefined' || !window.Razorpay) {
-      toast.error('Payment SDK failed to load. Refresh and try again.')
-      throw new Error('Razorpay SDK not loaded')
+    if (typeof window === 'undefined') {
+      throw new Error('Razorpay SDK requires a browser')
+    }
+    // Lazy-load the Razorpay Checkout SDK on first call. Keeps the
+    // ~30 KB script off the initial page load.
+    if (!window.Razorpay) {
+      try {
+        await loadRazorpayScript()
+      } catch {
+        toast.error('Payment SDK failed to load. Refresh and try again.')
+        throw new Error('Razorpay SDK not loaded')
+      }
     }
 
     // Phase 1: create internal order + Razorpay order. If this fails the
