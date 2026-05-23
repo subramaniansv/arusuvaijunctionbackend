@@ -16,8 +16,13 @@ public class SendResponseUtil {
         try {
 
       ObjectMapper mapper = new ObjectMapper();
-            response.getWriter().write(mapper.writeValueAsString(apiResponse));
+            // IMPORTANT: declare charset BEFORE calling getWriter().
+            // Servlet default is ISO-8859-1 which cannot encode Tamil/
+            // Hindi/emoji - they get silently replaced with '?'.
             response.setStatus(apiResponse.getStatusCode());
+            response.setContentType("application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(mapper.writeValueAsString(apiResponse));
             
         } catch (Exception e) {
 

@@ -16,8 +16,16 @@ public class SendResponseUtil {
         try {
 
       ObjectMapper mapper = new ObjectMapper();
-            response.getWriter().write(mapper.writeValueAsString(apiResponse));
+            // IMPORTANT: declare charset BEFORE calling getWriter().
+            // The Servlet spec defaults the response writer to
+            // ISO-8859-1, which cannot encode characters outside Latin-1
+            // (Tamil, Hindi, emoji, etc.) - they get silently replaced
+            // with '?'. Once getWriter() is called the encoding is
+            // locked, so we must set it first.
             response.setStatus(apiResponse.getStatusCode());
+            response.setContentType("application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(mapper.writeValueAsString(apiResponse));
             
         } catch (Exception e) {
 
