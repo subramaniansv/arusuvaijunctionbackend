@@ -1,9 +1,8 @@
 /**
  * Home page.
  *
- * Replica of frontendDemo/HomePage.tsx with two changes:
- *   1. Hero right-side image is a Carousel of banner images.
- *   2. Customer reviews section is a Carousel (auto-playing).
+ * Hero is a static watercolor scene (src/assets/image.png) with brand
+ * tagline + two CTAs. Customer reviews section is a Carousel (auto-playing).
  *
  * All visuals are composed from the reusable components in
  * /src/components. Dummy data lives inline; reviews come from
@@ -18,7 +17,6 @@ import {
   Heart,
   Shield,
   ChevronRight,
-  Sparkles,
   Phone,
   Mail,
   MapPin,
@@ -29,7 +27,6 @@ import {
   Container,
   Section,
   Button,
-  Badge,
   ProductCard,
   ReviewCard,
   Carousel,
@@ -45,27 +42,10 @@ import {
   faqLd,
   BRAND,
 } from '../lib/seo'
+import heroBackground from '../assets/image.png'
 import './Home.css'
 
 /* ---------------- Dummy data (replace with API later) ----------- */
-const HERO_SLIDES = [
-  {
-    src: 'https://images.unsplash.com/photo-1635952346904-95f2ccfcd029?w=1000',
-    caption: 'Sweet Ladoo',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1610508500445-a4592435e27e?w=1000',
-    caption: 'Traditional Murukku',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1765360024331-25b63e85272e?w=1000',
-    caption: 'Spicy Mixture',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1610550246952-0c906d3aca7a?w=1000',
-    caption: 'Athirasam',
-  },
-]
 
 const CATEGORIES = [
   { name: 'Murukku',   tamil: 'முறுக்கு',  image: 'https://images.unsplash.com/photo-1610508500445-a4592435e27e?w=400', color: 'var(--brand-green-light)' },
@@ -137,10 +117,30 @@ const QUICK_LINKS = [
 ]
 
 const CONTACTS = [
-  { icon: Phone,         label: 'Call us',     value: '+91 98765 43210' },
-  { icon: MessageCircle, label: 'WhatsApp',    value: '+91 98765 43210' },
-  { icon: Mail,          label: 'Email',       value: 'hello@arusuvai.in' },
-  { icon: MapPin,        label: 'Visit us',    value: 'T. Nagar, Chennai 600017' },
+  {
+    icon: Phone,
+    label: 'Call us',
+    value: '+91 95974 51463',
+    href: 'tel:+919597451463',
+  },
+  {
+    icon: MessageCircle,
+    label: 'WhatsApp',
+    value: '+91 95974 51463',
+    href: 'https://wa.me/919597451463',
+  },
+  {
+    icon: Mail,
+    label: 'Email support',
+    value: 'support@arusuvaijunction.com',
+    href: 'mailto:support@arusuvaijunction.com',
+  },
+  {
+    icon: MapPin,
+    label: 'Visit us',
+    value: '6/A, Matha Middle Street, Tirunelveli Town, Tamil Nadu 627006',
+    href: 'https://www.google.com/maps/search/?api=1&query=Arusuvai+Junction+Tirunelveli',
+  },
 ]
 
 /* ------------------------ Component ----------------------------- */
@@ -193,50 +193,38 @@ export default function Home() {
 /* ----- Hero ---------------------------------------------------- */
 function Hero() {
   return (
-    <section className="home-hero">
-      <div className="home-hero__pattern" aria-hidden="true" />
+    <section
+      className="home-hero"
+      style={{ backgroundImage: `url(${heroBackground})` }}
+      aria-label="Arusuvai Junction — fresh, homemade traditional South Indian foods"
+    >
+      <div className="home-hero__veil" aria-hidden="true" />
       <Container size="xl" className="home-hero__inner">
         <div className="home-hero__copy">
-          <Badge variant="warning" className="home-hero__eyebrow">
-            <Sparkles size={14} /> Freshly Made Daily
-          </Badge>
           <h1 className="home-hero__title">
-            Homemade<br />
-            <span className="home-hero__title--accent">Traditional Snacks</span><br />
-            &amp; Sweets
+            <span className="home-hero__title--line-1">Fresh. Homemade.</span>
+            <span className="home-hero__title--line-2">Arusuvai.</span>
           </h1>
-          <p className="home-hero__tamil">
-            வீட்டில் தயாரிக்கப்பட்ட சுவையான உணவுகள்
-          </p>
-          <p className="home-hero__lead">
-            Authentic Tamil snacks crafted with traditional recipes, no preservatives,
-            and lots of love.
-          </p>
-          <div className="home-hero__ctas">
-            <Button as={Link} to="/products" size="lg" rightIcon={<ChevronRight />}>
-              Shop Now
-            </Button>
-            <Button as={Link} to="/products" size="lg" variant="secondary">
-              View Menu
-            </Button>
-          </div>
-        </div>
 
-        <div className="home-hero__media">
-          <div className="home-hero__blob home-hero__blob--yellow" aria-hidden="true" />
-          <div className="home-hero__blob home-hero__blob--green" aria-hidden="true" />
-          <Carousel
-            autoPlay
-            interval={4500}
-            ariaLabel="Featured snacks"
-            className="home-hero__carousel"
-          >
-            {HERO_SLIDES.map((s) => (
-              <div className="home-hero__slide" key={s.src}>
-                <img src={s.src} alt={s.caption} loading="eager" />
-              </div>
-            ))}
-          </Carousel>
+          <div className="home-hero__divider" aria-hidden="true">
+            <span />
+            <Leaf size={14} />
+            <span />
+          </div>
+
+          <p className="home-hero__lead">
+            Traditional South Indian goodness crafted with authentic ingredients,
+            homemade care, and timeless recipes.
+          </p>
+
+          <div className="home-hero__ctas">
+            <Link to="/products" className="home-hero__btn home-hero__btn--primary">
+              Explore Products
+            </Link>
+            <Link to="/products" className="home-hero__btn home-hero__btn--secondary">
+              Shop Homemade Foods
+            </Link>
+          </div>
         </div>
       </Container>
     </section>
@@ -397,13 +385,16 @@ function ContactStrip() {
           <div>
             <h3 className="home-contact__heading">Get in touch</h3>
             <p className="home-contact__sub">
-              Questions about an order or a bulk request? We're a message away.
+              Have a question about an order, ingredients, or a bulk gift
+              request? Reach us on WhatsApp or email — we usually reply
+              within a few hours, Mon–Sat.
             </p>
             <ul className="home-contact__list">
               {CONTACTS.map((c) => {
                 const Icon = c.icon
-                return (
-                  <li key={c.label} className="home-contact__item">
+                const isExternal = c.href && /^(https?:|mailto:|tel:)/.test(c.href)
+                const inner = (
+                  <>
                     <span className="home-contact__icon">
                       <Icon size={18} />
                     </span>
@@ -411,6 +402,23 @@ function ContactStrip() {
                       <div className="home-contact__label">{c.label}</div>
                       <div className="home-contact__value">{c.value}</div>
                     </div>
+                  </>
+                )
+                return (
+                  <li key={c.label} className="home-contact__item">
+                    {c.href ? (
+                      <a
+                        href={c.href}
+                        className="home-contact__link"
+                        {...(isExternal && c.href.startsWith('http')
+                          ? { target: '_blank', rel: 'noopener noreferrer' }
+                          : {})}
+                      >
+                        {inner}
+                      </a>
+                    ) : (
+                      inner
+                    )}
                   </li>
                 )
               })}
