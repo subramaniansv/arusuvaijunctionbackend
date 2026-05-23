@@ -530,8 +530,8 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <ReviewComposer productId={product.id || product.productId} />
-
+          {/* Reviews list first - shoppers want social proof before
+              they're asked to contribute. */}
           {Array.isArray(product.reviews) && product.reviews.length > 0 ? (
             <div className="pd__reviews-grid">
               {product.reviews.map((r) => (
@@ -544,6 +544,9 @@ export default function ProductDetail() {
               description="Be the first to share your thoughts after trying this product."
             />
           )}
+
+          {/* Composer below the list. */}
+          <ReviewComposer productId={product.id || product.productId} />
         </section>
       </Container>
 

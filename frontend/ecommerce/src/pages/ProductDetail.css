@@ -253,15 +253,19 @@
 .pd__ingredients svg { color: var(--color-accent, var(--brand-yellow)); flex-shrink: 0; }
 
 /* ---------------- reviews ---------------- */
-.pd__reviews { margin-bottom: var(--space-12); }
+.pd__reviews { margin-top: var(--space-12); margin-bottom: var(--space-12); }
+.pd__related  { margin-top: var(--space-12); }
 .pd__section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
   flex-wrap: wrap;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-8);
 }
+/* Spacing between the reviews list and the composer form that
+   now sits below it. */
+.pd__reviews .pd__review-composer { margin-top: var(--space-8); }
 .pd__reviews-grid {
   display: grid;
   grid-template-columns: 1fr;

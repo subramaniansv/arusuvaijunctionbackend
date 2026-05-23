@@ -16,7 +16,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowLeft, MapPin, Phone, ShieldCheck, Loader2, Check } from 'lucide-react'
+import { ArrowLeft, MapPin, ShieldCheck, Loader2, Check } from 'lucide-react'
 
 import {
   Container,
@@ -270,7 +270,10 @@ export default function Checkout() {
   const pinHint =
     PIN_PATTERNS[country]?.label || 'Postal code'
 
-  /* ----- PIN status decoration (India only) ----- */
+  /* ----- PIN status decoration (India only) -----
+   * Only the optimistic states get UI. If the lookup fails or the PIN
+   * is unrecognised we stay silent and let the user type city/state
+   * manually - the goal is autofill convenience, not validation. */
   let pinStatusNode = null
   if (country === 'IN') {
     if (pinStatus === 'loading') {
@@ -285,19 +288,8 @@ export default function Checkout() {
           <Check size={14} aria-hidden="true" /> Found — state and city auto-filled
         </span>
       )
-    } else if (pinStatus === 'invalid') {
-      pinStatusNode = (
-        <span className="checkout__pin-status checkout__pin-status--warn">
-          PIN not recognised — please enter state and city manually.
-        </span>
-      )
-    } else if (pinStatus === 'error') {
-      pinStatusNode = (
-        <span className="checkout__pin-status checkout__pin-status--warn">
-          Couldn&apos;t reach PIN lookup service. Enter state and city manually.
-        </span>
-      )
     }
+    // 'invalid' and 'error' intentionally render nothing.
   }
 
   return (
@@ -327,6 +319,20 @@ export default function Checkout() {
               placeholder="Recipient name"
               error={errors.fullName?.message}
               {...register('fullName')}
+            />
+
+            {/* Phone is part of the address block now - shippers
+                always need it on the same label, so keeping it
+                in a separate card was just extra scrolling. */}
+            <Input
+              label="Phone number"
+              type="tel"
+              inputMode="tel"
+              placeholder="+91 9XXXXXXXXX"
+              autoComplete="tel"
+              hint="We'll use this to confirm your order if we need to."
+              error={errors.phone?.message}
+              {...register('phone')}
             />
 
             <Input
@@ -390,24 +396,6 @@ export default function Checkout() {
                 {...register('city')}
               />
             </div>
-          </Card>
-
-          <Card padding="lg" className="checkout__card">
-            <h2 className="checkout__section-title">
-              <Phone size={18} aria-hidden="true" /> Contact
-            </h2>
-            <Input
-              label="Phone number"
-              type="tel"
-              inputMode="tel"
-              placeholder="+91 9XXXXXXXXX"
-              autoComplete="tel"
-              error={errors.phone?.message}
-              {...register('phone')}
-            />
-            <p className="checkout__hint">
-              We&apos;ll use this to confirm your order if we need to.
-            </p>
           </Card>
 
           <div className="checkout__actions">
