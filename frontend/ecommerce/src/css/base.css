@@ -66,7 +66,30 @@ a {
 
 a:hover {
   color: var(--color-primary-hover);
+  text-decoration: none;
+}
+
+/* Only links inside long-form prose get a contextual underline. */
+.prose a,
+.markdown a {
   text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+.prose a:hover,
+.markdown a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Anything that already looks like a button must never grow an
+   underline on hover, even if a future page-level rule slips in. */
+button,
+.ui-btn,
+[class*="__btn"],
+[role="button"],
+a.ui-btn,
+a[class*="__btn"] {
+  text-decoration: none !important;
 }
 
 /* Lists, code -------------------------------------------------- */

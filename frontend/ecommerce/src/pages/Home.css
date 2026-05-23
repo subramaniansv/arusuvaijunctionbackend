@@ -153,30 +153,47 @@
   font-size: 1rem;
   text-decoration: none;
   transition:
-    background-color 0.18s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
     transform 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.2s ease;
   box-shadow: 0 2px 6px rgba(60, 50, 20, 0.12);
+  border: 1px solid transparent;
 }
 
+/* Primary — olive green → lifts to a warmer, brighter olive on hover. */
 .home-hero__btn--primary {
   background: #4f6a32;
   color: #fff;
 }
-.home-hero__btn--primary:hover {
-  background: #405726;
+.home-hero__btn--primary:hover,
+.home-hero__btn--primary:focus-visible {
+  background: #6a8a42;
+  color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(60, 50, 20, 0.18);
+  box-shadow: 0 6px 16px rgba(79, 106, 50, 0.32);
 }
+.home-hero__btn--primary:active { transform: translateY(0); background: #46612d; }
 
+/* Secondary — warm amber → hovers to an inverted outlined look so the two
+   buttons feel like a pair instead of two solids competing. */
 .home-hero__btn--secondary {
   background: #c08842;
   color: #fff;
 }
-.home-hero__btn--secondary:hover {
-  background: #a87330;
+.home-hero__btn--secondary:hover,
+.home-hero__btn--secondary:focus-visible {
+  background: #fff8ec;
+  color: #a85a1a;
+  border-color: #c08842;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(60, 50, 20, 0.18);
+  box-shadow: 0 6px 16px rgba(168, 90, 26, 0.22);
+}
+.home-hero__btn--secondary:active { transform: translateY(0); background: #f3e7d0; }
+
+.home-hero__btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 @media (max-width: 480px) {
