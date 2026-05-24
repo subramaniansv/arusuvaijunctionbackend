@@ -94,7 +94,7 @@ public class PaymentService {
     // ------------------------------------------------------------------
 
     /** Initiate payment for the user's current cart. */
-    public InitiationResponse initiateCartPayment(UUID userId, String shippingAddress, String phone) {
+    public InitiationResponse initiateCartPayment(UUID userId, String shippingAddress, String phone, double shippingFee) {
         validateShipping(shippingAddress, phone);
         requireVerifiedEmail(userId);
 
@@ -166,6 +166,9 @@ public class PaymentService {
                 total += linePrice * ci.getQuantity();
             }
 
+            // Add shipping charge to the order total.
+            if (shippingFee > 0) total += shippingFee;
+
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PAYMENT_PENDING, order.getOrderId());
 
@@ -204,7 +207,7 @@ public class PaymentService {
     /** Initiate payment for a one-shot Buy-Now (no cart involvement). */
     public InitiationResponse initiateBuyNowPayment(
             UUID userId, UUID productId, UUID variantId, int quantity,
-            String shippingAddress, String phone) {
+            String shippingAddress, String phone, double shippingFee) {
         validateShipping(shippingAddress, phone);
         if (productId == null) throw new RuntimeException("productId is required");
         if (quantity <= 0) throw new RuntimeException("quantity must be positive");
@@ -265,6 +268,9 @@ public class PaymentService {
             }
 
             double total = linePrice * quantity;
+            // Add shipping charge to the order total.
+            if (shippingFee > 0) total += shippingFee;
+
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PAYMENT_PENDING, order.getOrderId());
 

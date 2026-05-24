@@ -73,6 +73,7 @@ public class PaymentController extends HttpServlet {
 
         String shippingAddress = null;
         String phone = null;
+        double shippingFee = 0.0;
         UUID buyNowProductId = null;
         UUID buyNowVariantId = null;
         int buyNowQuantity = 0;
@@ -82,6 +83,10 @@ public class PaymentController extends HttpServlet {
             if (body != null) {
                 if (body.hasNonNull("shippingAddress")) shippingAddress = body.get("shippingAddress").asText();
                 if (body.hasNonNull("phone")) phone = body.get("phone").asText();
+                if (body.hasNonNull("shippingFee")) {
+                    shippingFee = body.get("shippingFee").asDouble(0.0);
+                    if (shippingFee < 0) shippingFee = 0.0;
+                }
                 JsonNode itemNode = body.get("item");
                 if (itemNode != null && itemNode.isObject() && itemNode.hasNonNull("productId")) {
                     buyNow = true;
@@ -117,8 +122,8 @@ public class PaymentController extends HttpServlet {
         try {
             PaymentService.InitiationResponse init = buyNow
                     ? service.initiateBuyNowPayment(user.getUserId(), buyNowProductId, buyNowVariantId,
-                            buyNowQuantity, shippingAddress, phone)
-                    : service.initiateCartPayment(user.getUserId(), shippingAddress, phone);
+                            buyNowQuantity, shippingAddress, phone, shippingFee)
+                    : service.initiateCartPayment(user.getUserId(), shippingAddress, phone, shippingFee);
 
             ObjectNode payload = MAPPER.createObjectNode();
             payload.put("orderId", init.orderId.toString());
