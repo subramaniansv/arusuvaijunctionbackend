@@ -32,6 +32,7 @@ import com.ecommerce.app.module.product.CategoryController;
 import com.ecommerce.app.module.product.ProductController;
 import com.ecommerce.app.module.product.ProductImageController;
 import com.ecommerce.app.module.product.ProductVariantController;
+import com.ecommerce.app.module.address.UserAddressController;
 import com.ecommerce.app.module.contact.ContactController;
 import com.ecommerce.app.module.review.ReviewController;
 import com.ecommerce.app.module.search.ProductSearchController;
@@ -170,6 +171,7 @@ public final class Main {
         mount(ctx, new OrderController(), "/api/order");
         mount(ctx, new PaymentController(), "/api/payment");
         mount(ctx, new ReviewController(), "/api/review");
+        mount(ctx, new UserAddressController(), "/api/address");
         mount(ctx, new ContactController(), "/api/contact");
         mount(ctx, new MailController(), "/api/mail");
         mount(ctx, new AdminController(), "/api/admin");
