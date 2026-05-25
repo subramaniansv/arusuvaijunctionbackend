@@ -179,7 +179,7 @@ public class ProductController extends HttpServlet {
             }
 
             // ----- Plain list -----
-            List<Product> products = service.getAllProducts(limit, offset);
+            List<Product> products = service.getAllActiveProducts(limit, offset);
             SendResponseUtil.sendResponse(new ApiResponse(true, "products fetched", products, 200), response);
 
         } catch (Exception e) {

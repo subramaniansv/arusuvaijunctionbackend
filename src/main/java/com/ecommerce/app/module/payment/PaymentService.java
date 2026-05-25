@@ -116,6 +116,7 @@ public class PaymentService {
             order.setUserId(userId);
             order.setShippingAddress(shippingAddress);
             order.setPhone(phone);
+            order.setShippingFee(shippingFee);
             Order created = orderRepository.create(connection, order);
             if (created == null || created.getOrderId() == null) {
                 connection.rollback();
@@ -247,6 +248,7 @@ public class PaymentService {
             order.setUserId(userId);
             order.setShippingAddress(shippingAddress);
             order.setPhone(phone);
+            order.setShippingFee(shippingFee);
             Order created = orderRepository.create(connection, order);
             if (created == null || created.getOrderId() == null) {
                 connection.rollback();

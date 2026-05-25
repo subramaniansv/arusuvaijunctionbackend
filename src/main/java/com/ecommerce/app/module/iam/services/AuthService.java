@@ -109,6 +109,7 @@ public class AuthService {
         tokenResponse.setAccessToken(accessToken);
         tokenResponse.setRefreshToken(refreshTokenString);
         tokenResponse.setTokenType("Bearer");
+        userRepository.updateLastLogin(userDB.getId());
         // Optional sign-in alert - opt-in via MAIL_LOGIN_ALERTS=true so dev
         // testing doesn't spam the inbox on every reload.
         if ("true".equalsIgnoreCase(com.ecommerce.app.module.iam.config.ENVConfig.get("MAIL_LOGIN_ALERTS"))

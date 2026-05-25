@@ -15,16 +15,15 @@ public class OrderRepository {
     private static final Logger LOG = LoggerFactory.getLogger(OrderRepository.class);
 
     public Order create(Connection connection, Order order) {
-        String sql = "insert into orders (order_id,user_id,shipping_address,phone_number) values (?,?,?,?)";
+        String sql = "insert into orders (order_id,user_id,shipping_address,phone_number,shipping_fee) values (?,?,?,?,?)";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             UUID id = UUID.randomUUID();
             preparedStatement.setObject(1, id);
             preparedStatement.setObject(2, order.getUserId());
-            // preparedStatement.setString(3, order.getStatus().name());
-            // preparedStatement.setDouble(3, order.getTotalAmount());
             preparedStatement.setString(3, order.getShippingAddress());
             preparedStatement.setString(4, order.getPhone());
+            preparedStatement.setDouble(5, order.getShippingFee());
             preparedStatement.executeUpdate();
             order.setOrderId(id);
         } catch (SQLException e) {
@@ -71,6 +70,7 @@ public class OrderRepository {
                     o.user_id,
                     o.order_status,
                     o.total_amount,
+                    o.shipping_fee,
                     o.shipping_address,
                     o.phone_number,
                     o.ordered_at,
@@ -118,6 +118,7 @@ public class OrderRepository {
                     order.setUserId(rs.getObject("user_id", java.util.UUID.class));
                     order.setStatus(OrderStatus.valueOf(rs.getString("order_status")));
                     order.setTotalAmount(rs.getDouble("total_amount"));
+                    order.setShippingFee(rs.getDouble("shipping_fee"));
                     order.setShippingAddress(rs.getString("shipping_address"));
                     order.setPhone(rs.getString("phone_number"));
                     order.setorderedAt(rs.getTimestamp("ordered_at"));
@@ -153,6 +154,7 @@ public class OrderRepository {
                     o.user_id,
                     o.order_status,
                     o.total_amount,
+                    o.shipping_fee,
                     o.shipping_address,
                     o.phone_number,
                     o.ordered_at,
@@ -195,6 +197,7 @@ public class OrderRepository {
                     order.setUserId(rs.getObject("user_id", java.util.UUID.class));
                     order.setStatus(OrderStatus.valueOf(rs.getString("order_status")));
                     order.setTotalAmount(rs.getDouble("total_amount"));
+                    order.setShippingFee(rs.getDouble("shipping_fee"));
                     order.setShippingAddress(rs.getString("shipping_address"));
                     order.setPhone(rs.getString("phone_number"));
                     order.setorderedAt(rs.getTimestamp("ordered_at"));
@@ -247,6 +250,7 @@ public class OrderRepository {
                     o.user_id,
                     o.order_status,
                     o.total_amount,
+                    o.shipping_fee,
                     o.shipping_address,
                     o.phone_number,
                     o.ordered_at,
@@ -286,6 +290,7 @@ public class OrderRepository {
                     order.setUserId(rs.getObject("user_id", java.util.UUID.class));
                     order.setStatus(OrderStatus.valueOf(rs.getString("order_status")));
                     order.setTotalAmount(rs.getDouble("total_amount"));
+                    order.setShippingFee(rs.getDouble("shipping_fee"));
                     order.setShippingAddress(rs.getString("shipping_address"));
                     order.setPhone(rs.getString("phone_number"));
                     order.setorderedAt(rs.getTimestamp("ordered_at"));

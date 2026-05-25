@@ -75,6 +75,10 @@ public class UserRepository {
                 user.setFirstName(rs.getString("first_name"));
                 user.setLastName(rs.getString("last_name"));
                 user.setStatus(UserStatus.valueOf(rs.getString("status")));
+                try {
+                    java.sql.Timestamp ll = rs.getTimestamp("last_login");
+                    if (ll != null) user.setLastLogin(ll.toLocalDateTime());
+                } catch (SQLException ignore) { }
                 users.add(user);
             }
         } catch (SQLException e) {
@@ -166,6 +170,19 @@ public class UserRepository {
         }
 
         return false;
+    }
+
+    public void updateLastLogin(UUID userId) {
+        String sql = "update users set last_login = NOW() where user_id = ?";
+        try (Connection connection = DBConfig.getConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setObject(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOG.error("Sql exception at updateLastLogin iam  ", e);
+        } catch (Exception e) {
+            LOG.error("unhandled exception at updateLastLogin iam  ", e);
+        }
     }
 
 }

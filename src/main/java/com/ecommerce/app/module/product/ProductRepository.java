@@ -98,6 +98,7 @@ public class ProductRepository {
 
         String sql = """
                 SELECT * FROM products
+                WHERE is_active = true
                 ORDER BY created_at DESC
                 LIMIT ? OFFSET ?
                 """;
@@ -183,6 +184,62 @@ public class ProductRepository {
             LOG.error("sql exception at findAllListView ", e);
         } catch (Exception e) {
             LOG.error("unhandled exception at findAllListView ", e);
+        }
+
+        return products;
+    }
+
+    /** Same as findAllListView but restricts to active products only (public catalog). */
+    public List<Product> findAllListViewActive(int limit, int offset) {
+        String sql = """
+                SELECT p.product_id, p.name, p.description, p.category,
+                       p.ingredients, p.name_tamil, p.description_tamil,
+                       p.ingredients_tamil,
+                       p.price, p.stock_quantity, p.is_active,
+                       p.created_at, p.updated_at,
+                       pi.image_url AS primary_image_url,
+                       COALESCE(r.avg_rating, 0) AS avg_rating,
+                       COALESCE(r.review_count, 0) AS review_count
+                FROM products p
+                LEFT JOIN LATERAL (
+                    SELECT image_url FROM product_images
+                    WHERE product_id = p.product_id AND is_primary = true
+                    LIMIT 1
+                ) pi ON true
+                LEFT JOIN LATERAL (
+                    SELECT AVG(rating)::float AS avg_rating,
+                           COUNT(*)          AS review_count
+                    FROM reviews
+                    WHERE product_id = p.product_id
+                ) r ON true
+                WHERE p.is_active = true
+                ORDER BY p.created_at DESC
+                LIMIT ? OFFSET ?
+                """;
+
+        List<Product> products = new ArrayList<>();
+
+        try (Connection connection = DBConfig.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, limit);
+            ps.setInt(2, offset);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product p = mapRow(rs);
+                p.setPrimaryImageUrl(rs.getString("primary_image_url"));
+                double avg = rs.getDouble("avg_rating");
+                p.setAverageRating(Math.round(avg * 100.0) / 100.0);
+                p.setReviewCount(rs.getInt("review_count"));
+                products.add(p);
+            }
+
+        } catch (SQLException e) {
+            LOG.error("sql exception at findAllListViewActive ", e);
+        } catch (Exception e) {
+            LOG.error("unhandled exception at findAllListViewActive ", e);
         }
 
         return products;

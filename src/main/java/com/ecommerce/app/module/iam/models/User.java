@@ -14,6 +14,7 @@ public class User{
     private boolean emailVerified;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime lastLogin;
     public UUID getId() {
         return id;
     }
@@ -73,6 +74,12 @@ public class User{
     }
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
     }
 
 

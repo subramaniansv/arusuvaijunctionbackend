@@ -115,6 +115,19 @@ public class ProductService {
         return products;
     }
 
+    /** Public catalog: only active products (used by the storefront, not admin). */
+    public List<Product> getAllActiveProducts(int limit, int offset) {
+        String key = "active:" + limit + ":" + offset;
+        long now = System.currentTimeMillis();
+        CachedPage cached = LIST_CACHE.get(key);
+        if (cached != null && cached.expiresAt() > now) {
+            return cached.products();
+        }
+        List<Product> products = productRepository.findAllListViewActive(limit, offset);
+        LIST_CACHE.put(key, new CachedPage(now + LIST_CACHE_TTL_MS, products));
+        return products;
+    }
+
     // Get product with images
     public Product getProductById(UUID productId) {
         Product product = productRepository.findById(productId);

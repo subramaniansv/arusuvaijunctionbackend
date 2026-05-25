@@ -9,6 +9,7 @@ public class Order {
     private UUID userId;
     private OrderStatus status;
     private double totalAmount;
+    private double shippingFee;
     private String shippingAddress;
     private String phone;
     private Timestamp orderedAt;
@@ -43,6 +44,12 @@ public class Order {
     }
     public void setTotalAmount(double totalAmount) {
         this.totalAmount = totalAmount;
+    }
+    public double getShippingFee() {
+        return shippingFee;
+    }
+    public void setShippingFee(double shippingFee) {
+        this.shippingFee = shippingFee;
     }
     public String getShippingAddress() {
         return shippingAddress;
