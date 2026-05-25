@@ -353,7 +353,7 @@ export default function RootLayout() {
                       {user && (
                         <div className="nav__menu-head">
                           <div className="nav__menu-name">
-                            {user.firstName || user.email || 'My account'}
+                            {[user.firstName, user.lastName].filter(Boolean).join(' ') || 'My account'}
                           </div>
                           {user.email && (
                             <div className="nav__menu-email">{user.email}</div>

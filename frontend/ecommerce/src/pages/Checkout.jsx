@@ -37,23 +37,6 @@ import './Checkout.css'
 const PLACEHOLDER =
   "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 3'%3e%3crect width='4' height='3' fill='%23f5f5f0'/%3e%3c/svg%3e"
 
-/* ------------------------------------------------------------------
- * Country list. Keep India on top because that's the primary market.
- * (Add more as needed - the rest fall back to free-text city/state
- * with no pincode lookup.)
- * ------------------------------------------------------------------ */
-const COUNTRIES = [
-  { value: 'IN', label: 'India' },
-  { value: 'US', label: 'United States' },
-  { value: 'GB', label: 'United Kingdom' },
-  { value: 'AE', label: 'United Arab Emirates' },
-  { value: 'SG', label: 'Singapore' },
-  { value: 'AU', label: 'Australia' },
-  { value: 'CA', label: 'Canada' },
-  { value: 'MY', label: 'Malaysia' },
-  { value: 'OTHER', label: 'Other' },
-]
-
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
   'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
@@ -67,26 +50,13 @@ const INDIAN_STATES = [
   'Ladakh', 'Lakshadweep', 'Puducherry',
 ]
 
-const PIN_PATTERNS = {
-  IN: { regex: /^\d{6}$/, label: '6-digit PIN code' },
-  US: { regex: /^\d{5}(-\d{4})?$/, label: '5-digit ZIP' },
-  GB: { regex: /^[A-Z0-9 ]{5,8}$/i, label: 'UK postcode' },
-  AE: { regex: /^.{3,10}$/, label: 'Postcode' },
-  SG: { regex: /^\d{6}$/, label: '6-digit postal code' },
-  AU: { regex: /^\d{4}$/, label: '4-digit postcode' },
-  CA: { regex: /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i, label: 'Canadian postal code' },
-  MY: { regex: /^\d{5}$/, label: '5-digit postcode' },
-  OTHER: { regex: /^.{2,12}$/, label: 'Postal code' },
-}
-
 const schema = z.object({
   fullName: z.string().trim().min(2, 'Please enter the recipient name').max(80),
   line1: z.string().trim().min(3, 'Please enter the door / street').max(120),
   line2: z.string().trim().max(120).optional().or(z.literal('')),
   city: z.string().trim().min(2, 'Please enter the city').max(60),
   state: z.string().trim().min(2, 'Please enter the state').max(60),
-  pincode: z.string().trim().min(3, 'Please enter the postal code').max(12),
-  country: z.string().min(2, 'Please select a country'),
+  pincode: z.string().trim().regex(/^\d{6}$/, 'Please enter a valid 6-digit PIN'),
   phone: z
     .string()
     .trim()
@@ -103,7 +73,7 @@ function buildShippingAddress(v) {
     v.line1,
     v.line2,
     [v.city, v.state, v.pincode].filter(Boolean).join(', '),
-    COUNTRIES.find((c) => c.value === v.country)?.label || v.country,
+    'India',
   ]
   return parts.filter((x) => x && String(x).trim()).join('\n')
 }
@@ -164,12 +134,10 @@ export default function Checkout() {
       city: '',
       state: '',
       pincode: '',
-      country: 'IN',
       phone: '',
     },
   })
 
-  const country = watch('country')
   const pincode = watch('pincode')
 
   // When the user selects a saved address, fill the form fields.
@@ -184,27 +152,17 @@ export default function Checkout() {
     setValue('city', addr.city || '', { shouldValidate: false })
     setValue('state', addr.state || '', { shouldValidate: false })
     setValue('pincode', addr.pincode || '', { shouldValidate: false })
-    setValue('country', addr.country || 'IN', { shouldValidate: false })
   }, [selectedSavedId, savedAddresses, setValue])
 
-  // Shipping fee derived from the watched pincode (India only).
-  // For non-IN countries we show 0 and let the admin handle it separately.
   const totalQty = items.reduce((s, it) => s + (it.quantity || 1), 0)
-  const shippingFee = country === 'IN'
-    ? calcShipping(pincode, totalQty, subtotal)
-    : 0
-  const shippingZoneLabel = country === 'IN' ? getZoneLabel(pincode) : null
+  const shippingFee = calcShipping(pincode, totalQty, subtotal)
+  const shippingZoneLabel = getZoneLabel(pincode)
   const total = subtotal + shippingFee
 
-  // PIN lookup state (India only)
   const [pinStatus, setPinStatus] = useState('idle') // idle | loading | found | invalid | error
   const lastLookupRef = useRef('')
 
   useEffect(() => {
-    if (country !== 'IN') {
-      setPinStatus('idle')
-      return
-    }
     const pin = (pincode || '').trim()
     if (!/^\d{6}$/.test(pin)) {
       setPinStatus('idle')
@@ -241,7 +199,7 @@ export default function Checkout() {
       cancelled = true
       clearTimeout(t)
     }
-  }, [country, pincode, setValue])
+  }, [pincode, setValue])
 
   // Bounce out of checkout if the cart is empty after loading.
   // (Skip this check in Buy-Now mode - the cart is irrelevant there.)
@@ -296,29 +254,25 @@ export default function Checkout() {
   }
   if (items.length === 0) return null // useEffect will redirect (cart mode only)
 
-  const pinHint =
-    PIN_PATTERNS[country]?.label || 'Postal code'
+  const pinHint = '6-digit PIN code'
 
-  /* ----- PIN status decoration (India only) -----
+  /* ----- PIN status decoration -----
    * Only the optimistic states get UI. If the lookup fails or the PIN
    * is unrecognised we stay silent and let the user type city/state
    * manually - the goal is autofill convenience, not validation. */
   let pinStatusNode = null
-  if (country === 'IN') {
-    if (pinStatus === 'loading') {
-      pinStatusNode = (
-        <span className="checkout__pin-status">
-          <Loader2 size={14} className="checkout__spin" aria-hidden="true" /> Looking up…
-        </span>
-      )
-    } else if (pinStatus === 'found') {
-      pinStatusNode = (
-        <span className="checkout__pin-status checkout__pin-status--ok">
-          <Check size={14} aria-hidden="true" /> Found - state and city auto-filled
-        </span>
-      )
-    }
-    // 'invalid' and 'error' intentionally render nothing.
+  if (pinStatus === 'loading') {
+    pinStatusNode = (
+      <span className="checkout__pin-status">
+        <Loader2 size={14} className="checkout__spin" aria-hidden="true" /> Looking up…
+      </span>
+    )
+  } else if (pinStatus === 'found') {
+    pinStatusNode = (
+      <span className="checkout__pin-status checkout__pin-status--ok">
+        <Check size={14} aria-hidden="true" /> Found - state and city auto-filled
+      </span>
+    )
   }
 
   return (
@@ -403,16 +357,10 @@ export default function Checkout() {
               {...register('line2')}
             />
 
-            <div className="checkout__grid-3">
-              <Select
-                label="Country"
-                options={COUNTRIES}
-                error={errors.country?.message}
-                {...register('country')}
-              />
+            <div className="checkout__grid-2">
               <Input
-                label={country === 'IN' ? 'PIN code' : 'Postal / ZIP code'}
-                inputMode={country === 'IN' || country === 'US' ? 'numeric' : 'text'}
+                label="PIN code"
+                inputMode="numeric"
                 autoComplete="postal-code"
                 placeholder={pinHint}
                 error={errors.pincode?.message}
@@ -425,22 +373,13 @@ export default function Checkout() {
             </div>
 
             <div className="checkout__grid-2">
-              {country === 'IN' ? (
-                <Select
-                  label="State"
-                  placeholder="Select state"
-                  options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
-                  error={errors.state?.message}
-                  {...register('state')}
-                />
-              ) : (
-                <Input
-                  label="State / Region"
-                  autoComplete="address-level1"
-                  error={errors.state?.message}
-                  {...register('state')}
-                />
-              )}
+              <Select
+                label="State"
+                placeholder="Select state"
+                options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+                error={errors.state?.message}
+                {...register('state')}
+              />
               <Input
                 label="City"
                 autoComplete="address-level2"
