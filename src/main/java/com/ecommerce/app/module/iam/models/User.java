@@ -2,10 +2,12 @@ package com.ecommerce.app.module.iam.models;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class User{
     private UUID id;
     private String email;
+    @JsonIgnore
     private String passwordHash;
     private String firstName;
     private String lastName;

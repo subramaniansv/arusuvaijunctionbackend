@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.ecommerce.app.module.iam.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class SendResponseUtil {
     private static final Logger LOG = LoggerFactory.getLogger(SendResponseUtil.class);
@@ -15,7 +17,9 @@ public class SendResponseUtil {
 
         try {
 
-      ObjectMapper mapper = new ObjectMapper();
+      ObjectMapper mapper = new ObjectMapper()
+              .registerModule(new JavaTimeModule())
+              .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             // IMPORTANT: declare charset BEFORE calling getWriter().
             // Servlet default is ISO-8859-1 which cannot encode Tamil/
             // Hindi/emoji - they get silently replaced with '?'.

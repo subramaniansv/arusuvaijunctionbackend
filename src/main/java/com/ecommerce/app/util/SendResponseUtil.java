@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.ecommerce.app.common.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class SendResponseUtil {
     private static final Logger LOG = LoggerFactory.getLogger(SendResponseUtil.class);
@@ -15,7 +17,9 @@ public class SendResponseUtil {
 
         try {
 
-      ObjectMapper mapper = new ObjectMapper();
+      ObjectMapper mapper = new ObjectMapper()
+              .registerModule(new JavaTimeModule())
+              .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             // IMPORTANT: declare charset BEFORE calling getWriter().
             // The Servlet spec defaults the response writer to
             // ISO-8859-1, which cannot encode characters outside Latin-1
