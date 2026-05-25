@@ -350,14 +350,9 @@ export default function RootLayout() {
                       role="menu"
                       aria-label="Account"
                     >
-                      {user && (
+                      {user && user.email && (
                         <div className="nav__menu-head">
-                          <div className="nav__menu-name">
-                            {[user.firstName, user.lastName].filter(Boolean).join(' ') || 'My account'}
-                          </div>
-                          {user.email && (
-                            <div className="nav__menu-email">{user.email}</div>
-                          )}
+                          <div className="nav__menu-email">{user.email}</div>
                         </div>
                       )}
 
@@ -541,17 +536,10 @@ export default function RootLayout() {
               </button>
             </div>
 
-            {isAuthed && user && (
+            {isAuthed && user && user.email && (
               <div className="nav__drawer-user">
                 <UserCircle size={28} aria-hidden="true" />
-                <div>
-                  <div className="nav__drawer-user-name">
-                    {user.firstName || user.email || 'My account'}
-                  </div>
-                  {user.email && (
-                    <div className="nav__drawer-user-email">{user.email}</div>
-                  )}
-                </div>
+                <div className="nav__drawer-user-email">{user.email}</div>
               </div>
             )}
 
