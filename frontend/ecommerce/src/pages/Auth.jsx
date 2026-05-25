@@ -55,11 +55,13 @@ export default function Auth() {
     if (!form.email.trim()) e.email = 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       e.email = 'Enter a valid email'
-    if (!form.password) e.password = 'Password is required'
-    else if (form.password.length < 6)
-      e.password = 'At least 6 characters'
     if (mode === 'register') {
+      if (!form.password) e.password = 'Password is required'
+      else if (form.password.length < 6)
+        e.password = 'Password must be at least 6 characters'
       if (!form.firstName.trim()) e.firstName = 'First name is required'
+      else if (form.firstName.trim().length < 3)
+        e.firstName = 'First name must be at least 3 characters'
       if (!form.lastName.trim()) e.lastName = 'Last name is required'
       if (form.confirm !== form.password)
         e.confirm = 'Passwords do not match'
