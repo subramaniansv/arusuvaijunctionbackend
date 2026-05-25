@@ -189,8 +189,8 @@ export default function Products() {
           filters.q
             ? `Search results for “${filters.q}”`
             : filters.category
-              ? `${filters.category} — traditional Indian snacks`
-              : 'Shop all snacks — traditional, sugar-free, protein-rich'
+              ? `${filters.category} - traditional Indian snacks`
+              : 'Shop all snacks - traditional, sugar-free, protein-rich'
         }
         description={`Browse Arusuvai Junction\u2019s full range of traditional Indian snacks: murukku, laddoos, mixture, sweets and more. ${BRAND.tagline}`}
         path={filters.q ? '/products' : '/products'}
@@ -270,7 +270,7 @@ export default function Products() {
                   onChange={(e) => update({ minPrice: e.target.value })}
                   aria-label="Minimum price"
                 />
-                <span className="products__price-dash">—</span>
+                <span className="products__price-dash">-</span>
                 <Input
                   type="number"
                   min={0}

@@ -36,6 +36,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 import RootLayout from './layouts/RootLayout'
 import {
@@ -133,6 +134,7 @@ function App() {
         toastOptions={{ duration: 3500 }}
       />
       <Analytics />
+      <SpeedInsights />
     </BrowserRouter>
   )
 }

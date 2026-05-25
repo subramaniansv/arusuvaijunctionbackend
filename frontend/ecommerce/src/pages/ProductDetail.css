@@ -127,6 +127,22 @@
   .pd__name { font-size: var(--text-4xl); }
 }
 
+/* Tamil subtitle below the H1 -- secondary visual weight so the
+ * English title remains the primary anchor for scanning + SEO. */
+.pd__name-tamil {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-tamil, var(--font-body));
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-snug);
+}
+.pd__panel-body--tamil {
+  margin-top: var(--space-2);
+  font-family: var(--font-tamil, var(--font-body));
+  color: var(--color-text-muted);
+}
+
 .pd__rating-row {
   display: flex;
   align-items: center;

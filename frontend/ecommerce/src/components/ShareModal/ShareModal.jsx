@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
- * ShareModal — YouTube-style share sheet.
+ * ShareModal - YouTube-style share sheet.
  *
  * Props:
  *   open        (bool)    - controlled visibility
@@ -68,7 +68,7 @@ const FacebookIcon = (props) => (
 
 function buildTargets({ url, title, text }) {
   const enc = encodeURIComponent
-  const shareText = text ? `${title} — ${text}` : title
+  const shareText = text ? `${title} - ${text}` : title
   return [
     {
       key: 'whatsapp',
@@ -82,7 +82,7 @@ function buildTargets({ url, title, text }) {
       label: 'Instagram',
       icon: <InstagramIcon />,
       className: 'share__btn--instagram',
-      // No web share URL — we copy + hint instead.
+      // No web share URL - we copy + hint instead.
       action: 'copy-hint',
       hint: 'Link copied. Open Instagram and paste it in a DM or story.',
     },
@@ -194,7 +194,7 @@ export default function ShareModal({
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
     } else {
-      flashFeedback("Couldn't copy — long-press the link to copy it manually.")
+      flashFeedback("Couldn't copy - long-press the link to copy it manually.")
     }
   }
 
@@ -204,11 +204,11 @@ export default function ShareModal({
       flashFeedback(
         ok
           ? t.hint
-          : "Couldn't copy — long-press the link below to copy it manually.",
+          : "Couldn't copy - long-press the link below to copy it manually.",
       )
       return
     }
-    // External URL targets — open in a new tab/window.
+    // External URL targets - open in a new tab/window.
     window.open(t.href, '_blank', 'noopener,noreferrer')
   }
 
@@ -216,7 +216,7 @@ export default function ShareModal({
     try {
       await navigator.share({ title, text: text || title, url: shareUrl })
     } catch {
-      /* user cancelled / unsupported — ignore */
+      /* user cancelled / unsupported - ignore */
     }
   }
 

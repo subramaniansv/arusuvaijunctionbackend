@@ -1,5 +1,5 @@
 /**
- * Returns / refunds policy — short and clear. Replace text once
+ * Returns / refunds policy - short and clear. Replace text once
  * the operations team confirms the final wording.
  */
 import { Link } from 'react-router-dom'
@@ -34,7 +34,7 @@ export default function ReturnPolicy() {
           <p>
             If your order arrives damaged, spoilt, or the wrong items were shipped, please get
             in touch within <strong>48 hours of delivery</strong>. We&apos;ll either re-ship the
-            affected items free of cost or refund you in full — your choice.
+            affected items free of cost or refund you in full - your choice.
           </p>
           <p>
             A quick photo of the issue helps us figure out what went wrong on our end and stops
@@ -46,7 +46,7 @@ export default function ReturnPolicy() {
           <h2>What we cannot accept back</h2>
           <ul>
             <li>Open packets (food safety).</li>
-            <li>Orders flagged after the 48-hour window — by then the freshness is hard to verify.</li>
+            <li>Orders flagged after the 48-hour window - by then the freshness is hard to verify.</li>
             <li>Requests where the address provided at checkout was incorrect (we can re-ship for the cost of delivery).</li>
           </ul>
         </section>

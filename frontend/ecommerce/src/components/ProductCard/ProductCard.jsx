@@ -41,6 +41,7 @@ export default function ProductCard({
   const {
     productId,
     name,
+    nameTamil,
     price,
     primaryImageUrl,
     stockQuantity,
@@ -113,6 +114,11 @@ export default function ProductCard({
 
       <div className="ui-product__body">
         <h3 className="ui-product__name" title={name}>{name}</h3>
+        {nameTamil && (
+          <p className="ui-product__name-tamil" lang="ta" aria-hidden="true">
+            {nameTamil}
+          </p>
+        )}
 
         {(averageRating != null || reviewCount != null) && (
           <RatingStars

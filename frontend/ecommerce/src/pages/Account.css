@@ -1,4 +1,4 @@
-/* Account page (profile + change password).
+/* Account page (profile + change password + saved addresses).
    Two card layout, with a small avatar circle, meta grid, and a tight
    password form. Reuses the global .btn / .form-* tokens.
    The whole page caps at ~720px so the form doesn't stretch awkwardly
@@ -300,4 +300,149 @@
   gap: .4rem;
   align-items: center;
   flex-wrap: wrap;
+}
+
+/* -------------------------------------------------------------------- */
+/* Saved addresses                                                        */
+/* -------------------------------------------------------------------- */
+
+.addr-empty {
+  margin: .5rem 0 0;
+  font-size: .9rem;
+  color: var(--text-muted, #666);
+}
+
+.addr-add-btn {
+  margin-left: auto;
+  font-size: .82rem;
+  padding: .3rem .7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+/* -- address card row -- */
+.addr-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: .85rem 0;
+  border-top: 1px dashed var(--border, #e6e6e6);
+}
+
+.addr-card--default {
+  background: #fffbf5;
+  border-radius: 8px;
+  padding: .85rem .75rem;
+  margin: 0 -.75rem;
+  border-top: 1px dashed #f4c28a;
+}
+
+.addr-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.addr-card__name {
+  margin: 0 0 .15rem;
+  font-weight: 600;
+  font-size: .95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+}
+
+.addr-card__star {
+  color: #e09b2f;
+}
+
+.addr-card__label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: #eef6ff;
+  color: #1e3a8a;
+  border: 1px solid #c9def9;
+  border-radius: 999px;
+  padding: .15rem .45rem;
+}
+
+.addr-card__phone,
+.addr-card__line {
+  margin: 0;
+  font-size: .875rem;
+  color: var(--text-muted, #555);
+  line-height: 1.5;
+}
+
+.addr-card__actions {
+  display: flex;
+  gap: .35rem;
+  flex: 0 0 auto;
+  padding-top: .1rem;
+}
+
+.addr-card__btn {
+  background: transparent;
+  border: 1px solid var(--border, #d4d4d4);
+  border-radius: 7px;
+  padding: .35rem .5rem;
+  cursor: pointer;
+  color: var(--text-muted, #555);
+  display: flex;
+  align-items: center;
+  transition: background .15s, color .15s;
+}
+
+.addr-card__btn:hover {
+  background: #f5f5f0;
+  color: var(--text, #1f1f1f);
+}
+
+.addr-card__btn--del:hover {
+  background: #fef2f2;
+  color: #b00020;
+  border-color: #f5c1c1;
+}
+
+/* -- inline address form -- */
+.addr-form {
+  display: grid;
+  gap: .85rem;
+  padding: 1rem 0 .5rem;
+  border-top: 1px dashed var(--border, #e6e6e6);
+}
+
+.addr-form__row {
+  display: grid;
+  gap: .85rem;
+}
+
+.addr-form__row--2 { grid-template-columns: 1fr 1fr; }
+.addr-form__row--3 { grid-template-columns: 1fr 1fr 1fr; }
+
+@media (max-width: 540px) {
+  .addr-form__row--2,
+  .addr-form__row--3 { grid-template-columns: 1fr; }
+}
+
+.addr-form__checkbox label {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .875rem;
+  cursor: pointer;
+}
+
+.addr-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .6rem;
+}
+
+.btn--sm {
+  font-size: .8rem;
+  padding: .3rem .75rem;
 }

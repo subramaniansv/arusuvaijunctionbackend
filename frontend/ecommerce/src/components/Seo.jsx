@@ -1,5 +1,5 @@
 /**
- * <Seo /> — page-level metadata.
+ * <Seo /> - page-level metadata.
  *
  * React 19 natively hoists <title>, <meta>, <link>, and <script> placed
  * inside any component into the document <head>, so no react-helmet
@@ -33,7 +33,7 @@ export default function Seo({
   const url = absoluteUrl(effectivePath)
   const fullTitle = title
     ? `${title} | ${BRAND.name}`
-    : `${BRAND.name} — ${BRAND.tagline}`
+    : `${BRAND.name} - ${BRAND.tagline}`
   const desc = description || BRAND.description
   const ogImage = image
     ? image.startsWith('http')

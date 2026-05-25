@@ -56,11 +56,14 @@
 .ui-product__share:hover { background: #fff; transform: scale(1.05); }
 .ui-product__share:active { transform: scale(0.95); }
 
-/* Wishlist heart sits below the share button on the right edge. */
+/* Wishlist heart sits on the LEFT edge of the media; the share button
+ * lives on the RIGHT edge. Splitting the two icons avoids overlap on
+ * narrow tiles where the share + heart used to stack on the same
+ * column and visually intersect. */
 .ui-product__wish {
   position: absolute;
-  top: calc(var(--space-2) + 36px);
-  right: var(--space-2);
+  top: var(--space-2);
+  left: var(--space-2);
   z-index: 2;
 }
 
@@ -109,6 +112,27 @@
     font-size: var(--text-base);
     min-height: calc(var(--text-base) * var(--line-height-snug) * 2);
   }
+}
+
+/* Tamil subtitle -- a small, muted line under the English name.
+ * Builds cultural trust + helps Tamil-script search queries reach the
+ * page, without competing visually with the primary English title.
+ * `lang="ta"` lets the browser pick the right script font fallback. */
+.ui-product__name-tamil {
+  margin: 0;
+  font-family: var(--font-tamil, var(--font-body));
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-snug);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .ui-product__name-tamil { font-size: var(--text-sm); }
 }
 
 /* Footer -- stack price + button so narrow cards never break the

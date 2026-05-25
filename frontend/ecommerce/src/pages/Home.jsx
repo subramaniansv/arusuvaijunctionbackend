@@ -45,9 +45,10 @@ import {
 } from '../lib/seo'
 import './Home.css'
 
-// Public asset - served from /public/hero.jpg without bundling, so the
-// same URL can be preloaded from index.html for an instant LCP.
-const heroBackground = '/hero.jpg'
+// Hero background image is now declared in Home.css via image-set()
+// so the browser can pick AVIF, then WebP, then JPEG. The matching
+// <link rel="preload" href="/hero.webp"> in index.html primes the LCP
+// image to download in parallel with the JS bundle.
 
 /* ---------------- Dummy data (replace with API later) ----------- */
 
@@ -159,7 +160,7 @@ export default function Home() {
     <div className="home">
       <Seo
         title={null /* uses brand default */}
-        description={`${BRAND.description} Shop sugar-free traditional Indian snacks online — murukku, laddoos, mixture, sweets — made with nuts, seeds and millets.`}
+        description={`${BRAND.description} Shop sugar-free traditional Indian snacks online - murukku, laddoos, mixture, sweets - made with nuts, seeds and millets.`}
         path="/"
         keywords={BRAND.defaultKeywords}
         jsonLd={[
@@ -173,7 +174,7 @@ export default function Home() {
             },
             {
               q: 'What makes your snacks high in protein?',
-              a: 'We use generous amounts of nuts (almonds, cashews, peanuts), seeds (sesame, flax, sunflower) and millets — all naturally protein-rich.',
+              a: 'We use generous amounts of nuts (almonds, cashews, peanuts), seeds (sesame, flax, sunflower) and millets - all naturally protein-rich.',
             },
             {
               q: 'Do you ship pan-India?',
@@ -185,7 +186,7 @@ export default function Home() {
             },
             {
               q: 'Are the snacks made with preservatives?',
-              a: 'Never. Our snacks contain zero artificial preservatives, colours or flavours — just traditional ingredients.',
+              a: 'Never. Our snacks contain zero artificial preservatives, colours or flavours - just traditional ingredients.',
             },
           ]),
         ]}
@@ -205,15 +206,14 @@ function Hero() {
   return (
     <section
       className="home-hero"
-      style={{ backgroundImage: `url(${heroBackground})` }}
-      aria-label="Arusuvai Junction — fresh, homemade traditional South Indian foods"
+      aria-label="Arusuvai Junction - fresh, homemade traditional South Indian foods"
     >
       <div className="home-hero__veil" aria-hidden="true" />
       <Container size="xl" className="home-hero__inner">
         <div className="home-hero__copy">
           <h1 className="home-hero__title">
             <span className="home-hero__title--line-1">Fresh. Homemade.</span>
-            <span className="home-hero__title--line-2">Arusuvai.</span>
+            <span className="home-hero__title--line-2">Arusuvai Junction.</span>
           </h1>
 
           <div className="home-hero__divider" aria-hidden="true">
@@ -372,7 +372,7 @@ function Reviews() {
 
         {!isLoading && !isError && data && data.length === 0 && (
           <p className="home-reviews__empty">
-            Be the first to leave a review — every purchased product has a review form.
+            Be the first to leave a review - every purchased product has a review form.
           </p>
         )}
         </Section>
@@ -382,7 +382,7 @@ function Reviews() {
 }
 
 /**
- * ReviewsPeek — responsive multi-card carousel.
+ * ReviewsPeek - responsive multi-card carousel.
  *
  * Shows N reviews side by side, all at full opacity:
  *   >= 1024px → 3 cards
@@ -461,7 +461,7 @@ function ReviewsPeek({ reviews }) {
               {review.body ? `“${review.body}”` : ''}
             </p>
             <div className="home-review-simple__name">
-              — {review.user?.name || 'Customer'}
+              - {review.user?.name || 'Customer'}
             </div>
           </article>
         ))}
@@ -485,7 +485,7 @@ function ReviewsPeek({ reviews }) {
               role="tab"
               aria-selected={i === index}
               aria-label={`Go to review ${i + 1}`}
-              className={`home-reviews-peek__dot ${i === index ? 'is-active' : ''}`}
+              className={`home-reviews-peek__dot no-touch-min ${i === index ? 'is-active' : ''}`}
               onClick={() => setIndex(i)}
             />
           ))}
@@ -514,7 +514,7 @@ function ContactStrip() {
             <h3 className="home-contact__heading">Get in touch</h3>
             <p className="home-contact__sub">
               Have a question about an order, ingredients, or a bulk gift
-              request? Reach us on WhatsApp or email — we usually reply
+              request? Reach us on WhatsApp or email - we usually reply
               within a few hours, Mon–Sat.
             </p>
             <ul className="home-contact__list">

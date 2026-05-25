@@ -22,7 +22,7 @@ import {
   LogOut, LogIn, X, UserCircle, Heart, Menu, MailWarning, Loader2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
+import Arusuvaijunction from '../assets/ArusuvaiJunction.png'
 import { useAuthStore } from '../stores/authStore'
 import { useCartItemCount } from '../lib/cart'
 import { useMyProfile, useResendVerification } from '../lib/me'
@@ -262,9 +262,9 @@ export default function RootLayout() {
             </button>
 
             {/* logo */}
-            <Link to="/" className="nav__logo" aria-label="Arusuvai home">
-              <span className="nav__logo-mark" aria-hidden="true">A</span>
-              <span className="nav__logo-text">Arusuvai</span>
+            <Link to="/" className="nav__logo" aria-label="Arusuvai Junction home">
+              <span className="nav__logo-mark" aria-hidden="true"><img src={Arusuvaijunction} alt="Arusuvai Junction logo" /></span>
+              <span className="nav__logo-text">Arusuvai Junction</span>
             </Link>
 
             {/* inline search (collapses below 720px to mobile toggle) */}
@@ -529,7 +529,7 @@ export default function RootLayout() {
                 onClick={() => setDrawerOpen(false)}
               >
                 <span className="nav__logo-mark" aria-hidden="true">A</span>
-                <span>Arusuvai</span>
+                <span>Arusuvai Junction</span>
               </Link>
               <button
                 type="button"

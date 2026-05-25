@@ -37,7 +37,7 @@
   --color-bg-secondary:     var(--brand-yellow-light);
 
   --color-text:             #2a2f1a;          /* warm near-black   */
-  --color-text-muted:       #6b6552;          /* warm muted ink    */
+  --color-text-muted:       #5a513f;          /* warm muted ink (AA contrast on cream + white) */
   --color-text-on-primary:  #ffffff;
   --color-text-on-accent:   #ffffff;
 

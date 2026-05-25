@@ -1,5 +1,5 @@
 /**
- * Contact page — info strip on the left, message form on the right.
+ * Contact page - info strip on the left, message form on the right.
  *
  * Form posts to POST /api/contact (public). Admin sees submissions
  * in /admin/messages.
@@ -22,7 +22,7 @@ import './StaticPage.css'
 const schema = z.object({
   name:    z.string().min(2, 'Please tell us your name').max(120),
   email:   z.string().email('Please enter a valid email'),
-  phone:   z.string().max(40).optional().or(z.literal('')),
+  phone:   z.string().regex(/^[0-9+\-\s()]*$/, 'Phone number must contain only digits').max(15, 'Max 15 digits').optional().or(z.literal('')),
   subject: z.string().max(200).optional().or(z.literal('')),
   message: z.string().min(10, 'Please add a bit more detail').max(5000),
 })
@@ -67,7 +67,7 @@ export default function Contact() {
   return (
     <div className="staticpage">
       <Seo
-        title="Contact Arusuvai Junction — Tirunelveli, Tamil Nadu"
+        title="Contact Arusuvai Junction - Tirunelveli, Tamil Nadu"
         description="Get in touch with Arusuvai Junction for orders, bulk enquiries or feedback. Based in Tirunelveli, Tamil Nadu. We reply within one working day."
         path="/contact"
         jsonLd={[
@@ -83,7 +83,7 @@ export default function Contact() {
         <h1 className="staticpage__title">We&apos;d love to hear from you</h1>
         <p className="staticpage__lead">
           Questions about an order, bulk requests for a wedding or office, or just want to say
-          hi — we&apos;re a message away. We try to reply within one working day.
+          hi - we&apos;re a message away. We try to reply within one working day.
         </p>
       </header>
 
@@ -91,7 +91,7 @@ export default function Contact() {
         <form className="contactform" onSubmit={handleSubmit(onSubmit)} noValidate>
           {submitted && (
             <Alert variant="success" icon={<CheckCircle2 size={18} />}>
-              Thanks! Your message is with us — we&apos;ll be in touch shortly.
+              Thanks! Your message is with us - we&apos;ll be in touch shortly.
             </Alert>
           )}
           {serverError && <Alert variant="danger">{serverError}</Alert>}
@@ -120,7 +120,11 @@ export default function Contact() {
               type="tel"
               placeholder="+91 ..."
               autoComplete="tel"
+              inputMode="numeric"
               error={errors.phone?.message}
+              onInput={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9+\-\s()]/g, '')
+              }}
               {...register('phone')}
             />
             <Input

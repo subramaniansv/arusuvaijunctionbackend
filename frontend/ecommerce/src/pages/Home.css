@@ -47,6 +47,14 @@
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
+  /* Browser picks the smallest format it supports. AVIF (~50KB) →
+     WebP (~113KB) → JPEG (327KB). The matching <link rel="preload">
+     in index.html primes WebP for the LCP win. */
+  background-image: image-set(
+    url('/hero.avif') type('image/avif'),
+    url('/hero.webp') type('image/webp'),
+    url('/hero.jpg') type('image/jpeg')
+  );
   min-height: 100vh;
   /* dvh keeps the hero exactly one viewport tall even when iOS
      Safari's address bar collapses — no bottom gap. */

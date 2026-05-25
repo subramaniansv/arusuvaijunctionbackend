@@ -61,7 +61,7 @@ function MessageRow({ msg }) {
     }
   }
 
-  const created = msg.createdAt ? new Date(msg.createdAt).toLocaleString() : '—'
+  const created = msg.createdAt ? new Date(msg.createdAt).toLocaleString() : '-'
 
   return (
     <div className="admin-msg">
@@ -109,7 +109,7 @@ function MessageRow({ msg }) {
             <Button
               as="a"
               href={`mailto:${msg.email}?subject=${encodeURIComponent(
-                'Re: ' + (msg.subject || 'your message to Arusuvai')
+                'Re: ' + (msg.subject || 'your message to Arusuvai Junction')
               )}`}
               size="sm"
               leftIcon={<MessageSquare size={14} />}

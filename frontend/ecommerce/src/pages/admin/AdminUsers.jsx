@@ -31,6 +31,23 @@ const STATUS_VARIANT = {
   DEAD: 'danger',
 }
 
+function timeAgo(dateStr) {
+  if (!dateStr) return 'Never'
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
+  if (diff < 60) return 'Just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`
+  const days = Math.floor(diff / 86400)
+  if (days === 1) return '1 day ago'
+  if (days < 30) return `${days} days ago`
+  if (days < 365) {
+    const months = Math.floor(days / 30)
+    return months === 1 ? '1 month ago' : `${months} months ago`
+  }
+  const years = Math.floor(days / 365)
+  return years === 1 ? '1 year ago' : `${years} years ago`
+}
+
 function StatusEditor({ user, disabled }) {
   const [status, setStatus] = useState(user.status || 'ACTIVE')
   const mut = useUpdateUserStatus()
@@ -104,13 +121,14 @@ export default function AdminUsers() {
             <span>User</span>
             <span>Email</span>
             <span>Role</span>
+            <span>Last Login</span>
             <span>Current</span>
             <span>Change status</span>
           </div>
           {users.map((u) => {
             const isSelf = u.id === currentUserId
             const name =
-              [u.firstName, u.lastName].filter(Boolean).join(' ') || '—'
+              [u.firstName, u.lastName].filter(Boolean).join(' ') || '-'
             return (
               <div key={u.id} className="admin-table__row">
                 <div className="admin-product-cell">
@@ -126,6 +144,7 @@ export default function AdminUsers() {
                 <Badge variant={u.admin ? 'primary' : 'neutral'}>
                   {u.admin ? 'Admin' : 'Customer'}
                 </Badge>
+                <span className="text-muted">{timeAgo(u.lastLogin)}</span>
                 <Badge variant={STATUS_VARIANT[u.status] || 'neutral'}>
                   {u.status || 'ACTIVE'}
                 </Badge>

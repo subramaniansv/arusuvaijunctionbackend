@@ -13,7 +13,7 @@ export const SITE_URL =
 export const BRAND = {
   name: 'Arusuvai Junction',
   legalName: 'Arusuvai Junction',
-  shortName: 'Arusuvai',
+  shortName: 'Arusuvai Junction',
   tagline:
     'Traditional and modern Indian snacks made with nuts, seeds and millets — no white sugar, packed with natural protein.',
   description:

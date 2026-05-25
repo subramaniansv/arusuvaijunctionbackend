@@ -1,5 +1,5 @@
 /**
- * About us — static informational page.
+ * About us - static informational page.
  *
  * Shipped to fix the 404s referenced from the home page footer.
  * Content is intentionally plain text so it's easy to refresh
@@ -13,7 +13,7 @@ import { organizationLd, breadcrumbLd } from '../lib/seo'
 import './StaticPage.css'
 
 const PILLARS = [
-  { icon: Leaf,        title: 'Homemade goodness',  body: 'Every batch is cooked the same way it would be in a Tamil home — no shortcuts, no fillers.' },
+  { icon: Leaf,        title: 'Homemade goodness',  body: 'Every batch is cooked the same way it would be in a Tamil home - no shortcuts, no fillers.' },
   { icon: ShieldCheck, title: 'Zero preservatives', body: 'We use only the ingredients you would use in your own kitchen. Nothing artificial, ever.' },
   { icon: Clock,       title: 'Fresh, not stocked', body: 'Snacks are prepared in small batches and shipped as soon as they cool. No warehouse aging.' },
   { icon: Heart,       title: 'Cooked with love',   body: 'Recipes have been passed down for generations. We make what we would happily feed our own family.' },
@@ -23,7 +23,7 @@ export default function About() {
   return (
     <div className="staticpage">
       <Seo
-        title="About Arusuvai Junction — traditional Tamil snacks, made the healthy way"
+        title="About Arusuvai Junction - traditional Tamil snacks, made the healthy way"
         description="The story behind Arusuvai Junction: family recipes, traditional methods, no white sugar, no preservatives. Healthy Indian snacks made with nuts, seeds and millets."
         path="/about"
         jsonLd={[
@@ -38,7 +38,7 @@ export default function About() {
         <span className="staticpage__eyebrow">About us</span>
         <h1 className="staticpage__title">Traditional Tamil snacks, made the way they should be</h1>
         <p className="staticpage__lead">
-          Arusuvai started as a small family kitchen in Chennai with a single goal — to share
+          Arusuvai started as a small family kitchen in Chennai with a single goal - to share
           homemade Tamil snacks with families who don&apos;t have the time (or the patient
           grandmother) to make them at home.
         </p>
@@ -59,7 +59,7 @@ export default function About() {
           </p>
 
           <blockquote className="staticpage__quote">
-            &ldquo;Arusuvai&rdquo; means &ldquo;six tastes&rdquo; in Tamil — sweet, sour, salty,
+            &ldquo;Arusuvai&rdquo; means &ldquo;six tastes&rdquo; in Tamil - sweet, sour, salty,
             bitter, pungent, and astringent. A meal is incomplete without all of them.
           </blockquote>
 
@@ -68,7 +68,7 @@ export default function About() {
             {PILLARS.map(({ icon: Icon, title, body }) => (
               <li key={title}>
                 <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Icon size={16} aria-hidden="true" /> {title} —
+                  <Icon size={16} aria-hidden="true" /> {title} -
                 </strong>{' '}
                 {body}
               </li>

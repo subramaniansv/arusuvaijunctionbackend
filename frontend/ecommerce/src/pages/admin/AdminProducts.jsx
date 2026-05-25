@@ -192,7 +192,7 @@ export default function AdminProducts() {
                   </div>
                 </div>
               </div>
-              <span className="text-muted">{p.category || '—'}</span>
+              <span className="text-muted">{p.category || '-'}</span>
               <PriceTag amount={Number(p.price) || 0} />
               <div onClick={(e) => e.stopPropagation()}>
                 <StockCell product={p} />

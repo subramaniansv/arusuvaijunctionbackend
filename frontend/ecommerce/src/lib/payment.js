@@ -57,8 +57,9 @@ function loadRazorpayScript() {
  * ------------------------------------------------------------------ */
 export function usePaymentInitiate() {
   return useMutation({
-    mutationFn: async ({ shippingAddress, phone, item }) => {
+    mutationFn: async ({ shippingAddress, phone, shippingFee, item }) => {
       const body = { shippingAddress, phone }
+      if (shippingFee != null && shippingFee > 0) body.shippingFee = shippingFee
       if (item && item.productId) {
         body.item = {
           productId: item.productId,
@@ -139,7 +140,7 @@ export function useRazorpayCheckout() {
         order_id: init.razorpayOrderId,
         amount: init.amount,
         currency: init.currency || 'INR',
-        name: 'Arusuvai',
+        name: 'Arusuvai Junction',
         description: 'Order #' + String(init.orderId).slice(0, 8).toUpperCase(),
         prefill: {
           name: prefill.name || '',

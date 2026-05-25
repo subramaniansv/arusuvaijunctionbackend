@@ -173,3 +173,34 @@ body::-webkit-scrollbar { display: none; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ------------------------------------------------------------------
+ * Touch-target sizing (WCAG 2.2 — Target Size, Minimum, 24x24 px;
+ * Apple/Google guidance: 44x44 px). On touch / coarse-pointer devices,
+ * guarantee every interactive control is at least 44x44 CSS px so the
+ * Lighthouse "Touch targets do not have sufficient size or spacing"
+ * audit passes. Desktop with mouse remains unaffected so compact UI
+ * stays compact for cursor users.
+ *
+ * Opt out small decorative buttons (e.g. carousel dots, pagination
+ * pills, color swatches) by adding the `no-touch-min` class so they
+ * keep their compact visual size. For those, ensure they sit inside
+ * a parent with enough padding to still meet WCAG spacing rules.
+ * ------------------------------------------------------------------ */
+@media (pointer: coarse) {
+  button:not(:disabled):not(.no-touch-min),
+  [role="button"]:not(.no-touch-min),
+  a.btn:not(.no-touch-min),
+  .icon-btn:not(.no-touch-min) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Last-resort guard against horizontal scroll on mobile. Any element
+ * that exceeds 100vw (e.g. an oversized embed or a stray fixed-width
+ * container) is contained at the viewport root. */
+html,
+body {
+  overflow-x: hidden;
+}

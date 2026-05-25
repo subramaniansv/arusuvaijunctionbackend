@@ -41,6 +41,7 @@ import {
   useRemoveCartItem,
   useClearCart,
 } from '../lib/cart'
+import { MIN_SHIPPING_INR, FREE_ABOVE_INR } from '../lib/shipping'
 import './Cart.css'
 
 const PLACEHOLDER =
@@ -57,8 +58,11 @@ export default function Cart() {
     (s, it) => s + (it.subtotal ?? it.price * it.quantity),
     0,
   )
-  const shipping = items.length > 0 ? 0 : 0   // free shipping for now
-  const total = subtotal + shipping
+  // Shipping is calculated at checkout from the customer's pincode.
+  // On this page we only know the merchandise total, so we show the minimum
+  // possible charge. If the order qualifies for free shipping (≥ FREE_ABOVE_INR)
+  // we show "Free" proactively.
+  const shippingIsFree = subtotal >= FREE_ABOVE_INR
 
   /* ---------------- loading / error ---------------- */
   if (isLoading) return <CartSkeleton />
@@ -138,9 +142,16 @@ export default function Cart() {
           <Card padding="lg" className="cart__summary-card">
             <h2 className="cart__summary-title">Order Summary</h2>
             <SummaryLine label={`Subtotal (${items.length} item${items.length === 1 ? '' : 's'})`} value={subtotal} />
-            <SummaryLine label="Shipping" value={shipping} free={shipping === 0} />
+            <SummaryLine
+              label="Shipping"
+              free={shippingIsFree}
+              estimate={shippingIsFree ? undefined : `from ₹${MIN_SHIPPING_INR}`}
+            />
             <Divider />
-            <SummaryLine label="Total" value={total} strong />
+            <SummaryLine label="Subtotal (excl. shipping)" value={subtotal} strong />
+            {!shippingIsFree && (
+              <p className="cart__shipping-note">Exact shipping calculated at checkout based on your location.</p>
+            )}
 
             <Button
               as={Link}
@@ -154,7 +165,7 @@ export default function Cart() {
             </Button>
 
             <ul className="cart__perks">
-              <li><Truck size={14} /> Free shipping over ₹500</li>
+              <li><Truck size={14} /> Free shipping over ₹{FREE_ABOVE_INR}</li>
               <li><ShieldCheck size={14} /> Secure checkout</li>
               <li><TagIcon size={14} /> Coupons applied at checkout</li>
             </ul>
@@ -240,12 +251,14 @@ function CartRow({ item, onQtyChange, onRemove, busy }) {
   )
 }
 
-function SummaryLine({ label, value, strong, free }) {
+function SummaryLine({ label, value, strong, free, estimate }) {
   return (
     <div className={`cart__sum-line ${strong ? 'cart__sum-line--strong' : ''}`}>
       <span>{label}</span>
       {free ? (
         <span className="cart__sum-free">Free</span>
+      ) : estimate != null ? (
+        <span className="cart__sum-estimate">{estimate}</span>
       ) : (
         <PriceTag amount={value} size={strong ? 'lg' : 'md'} />
       )}

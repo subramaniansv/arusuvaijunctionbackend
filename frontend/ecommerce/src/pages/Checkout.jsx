@@ -16,7 +16,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowLeft, MapPin, ShieldCheck, Loader2, Check } from 'lucide-react'
+import { ArrowLeft, MapPin, ShieldCheck, Loader2, Check, BookUser } from 'lucide-react'
 
 import {
   Container,
@@ -30,6 +30,8 @@ import {
 import { useCart } from '../lib/cart'
 import { useRazorpayCheckout } from '../lib/payment'
 import { useMyProfile } from '../lib/me'
+import { useAddresses } from '../lib/addresses'
+import { calcShipping, getZoneLabel, FREE_ABOVE_INR } from '../lib/shipping'
 import './Checkout.css'
 
 const PLACEHOLDER =
@@ -112,7 +114,9 @@ export default function Checkout() {
   const { data: cart, isLoading } = useCart()
   const payWithRazorpay = useRazorpayCheckout()
   const { data: profile } = useMyProfile()
+  const { data: savedAddresses = [] } = useAddresses()
   const [paying, setPaying] = useState(false)
+  const [selectedSavedId, setSelectedSavedId] = useState('')
 
   /* -----------------------------------------------------------------
    * Buy-Now mode: when arriving with router state.buyNow, this checkout
@@ -167,6 +171,30 @@ export default function Checkout() {
 
   const country = watch('country')
   const pincode = watch('pincode')
+
+  // When the user selects a saved address, fill the form fields.
+  useEffect(() => {
+    if (!selectedSavedId) return
+    const addr = savedAddresses.find((a) => a.addressId === selectedSavedId)
+    if (!addr) return
+    setValue('fullName', addr.fullName || '', { shouldValidate: false })
+    setValue('phone', addr.phone || '', { shouldValidate: false })
+    setValue('line1', addr.line1 || '', { shouldValidate: false })
+    setValue('line2', addr.line2 || '', { shouldValidate: false })
+    setValue('city', addr.city || '', { shouldValidate: false })
+    setValue('state', addr.state || '', { shouldValidate: false })
+    setValue('pincode', addr.pincode || '', { shouldValidate: false })
+    setValue('country', addr.country || 'IN', { shouldValidate: false })
+  }, [selectedSavedId, savedAddresses, setValue])
+
+  // Shipping fee derived from the watched pincode (India only).
+  // For non-IN countries we show 0 and let the admin handle it separately.
+  const totalQty = items.reduce((s, it) => s + (it.quantity || 1), 0)
+  const shippingFee = country === 'IN'
+    ? calcShipping(pincode, totalQty, subtotal)
+    : 0
+  const shippingZoneLabel = country === 'IN' ? getZoneLabel(pincode) : null
+  const total = subtotal + shippingFee
 
   // PIN lookup state (India only)
   const [pinStatus, setPinStatus] = useState('idle') // idle | loading | found | invalid | error
@@ -228,6 +256,7 @@ export default function Checkout() {
     const payload = {
       shippingAddress: buildShippingAddress(values),
       phone: values.phone,
+      shippingFee,
     }
     if (buyNow) {
       payload.item = {
@@ -285,7 +314,7 @@ export default function Checkout() {
     } else if (pinStatus === 'found') {
       pinStatusNode = (
         <span className="checkout__pin-status checkout__pin-status--ok">
-          <Check size={14} aria-hidden="true" /> Found — state and city auto-filled
+          <Check size={14} aria-hidden="true" /> Found - state and city auto-filled
         </span>
       )
     }
@@ -300,7 +329,7 @@ export default function Checkout() {
         </h1>
         <p className="checkout__sub">
           {buyNow
-            ? 'Single-item express checkout — your cart is not affected.'
+            ? 'Single-item express checkout - your cart is not affected.'
             : 'Review your order and add shipping details.'}
         </p>
       </header>
@@ -312,6 +341,29 @@ export default function Checkout() {
             <h2 className="checkout__section-title">
               <MapPin size={18} aria-hidden="true" /> Shipping address
             </h2>
+
+            {/* ---- Saved-address picker (only shown when user has saved addresses) ---- */}
+            {savedAddresses.length > 0 && (
+              <div className="checkout__saved-addr">
+                <label htmlFor="savedAddrSelect" className="checkout__saved-addr__label">
+                  <BookUser size={15} aria-hidden="true" /> Use a saved address
+                </label>
+                <select
+                  id="savedAddrSelect"
+                  className="checkout__saved-addr__select"
+                  value={selectedSavedId}
+                  onChange={(e) => setSelectedSavedId(e.target.value)}
+                >
+                  <option value="">— fill form manually —</option>
+                  {savedAddresses.map((a) => (
+                    <option key={a.addressId} value={a.addressId}>
+                      {a.label ? `${a.label} – ` : ''}{a.fullName}, {a.city}
+                      {a.default ? ' ★' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <Input
               label="Full name"
@@ -461,13 +513,24 @@ export default function Checkout() {
               <PriceTag amount={subtotal} size="md" />
             </div>
             <div className="checkout__sum-line">
-              <span>Shipping</span>
-              <span className="checkout__free">Free</span>
+              <span>
+                Shipping
+                {shippingZoneLabel && (
+                  <span className="checkout__shipping-zone"> – {shippingZoneLabel}</span>
+                )}
+              </span>
+              {shippingFee === 0 ? (
+                <span className="checkout__free">
+                  {subtotal >= FREE_ABOVE_INR ? 'Free' : 'TBD'}
+                </span>
+              ) : (
+                <PriceTag amount={shippingFee} size="md" />
+              )}
             </div>
             <Divider />
             <div className="checkout__sum-line checkout__sum-line--strong">
               <span>Total</span>
-              <PriceTag amount={subtotal} size="lg" />
+              <PriceTag amount={total} size="lg" />
             </div>
 
             <Button
@@ -478,7 +541,7 @@ export default function Checkout() {
               loading={isSubmitting || paying}
               className="checkout__place"
             >
-              {`Pay ₹${Number(subtotal).toLocaleString('en-IN')}`}
+              {`Pay ₹${Number(total).toLocaleString('en-IN')}`}
             </Button>
 
             <p className="checkout__secure">

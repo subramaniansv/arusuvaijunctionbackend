@@ -1,5 +1,5 @@
 /**
- * Privacy policy — plain, plain-English version. Not legal advice;
+ * Privacy policy - plain, plain-English version. Not legal advice;
  * replace the body before going live in production.
  */
 import Seo from '../components/Seo'
@@ -33,10 +33,10 @@ export default function PrivacyPolicy() {
         <section className="staticpage__section">
           <h2>What we collect</h2>
           <ul>
-            <li><strong>Account details</strong> — your name, email and (optionally) phone number when you create an account.</li>
-            <li><strong>Order details</strong> — items ordered, shipping address and payment status. We never store full card numbers.</li>
-            <li><strong>Contact form messages</strong> — anything you send us via the contact form, plus your email so we can reply.</li>
-            <li><strong>Basic technical data</strong> — IP address and browser type, used only to detect abuse and keep the site stable.</li>
+            <li><strong>Account details</strong> - your name, email and (optionally) phone number when you create an account.</li>
+            <li><strong>Order details</strong> - items ordered, shipping address and payment status. We never store full card numbers.</li>
+            <li><strong>Contact form messages</strong> - anything you send us via the contact form, plus your email so we can reply.</li>
+            <li><strong>Basic technical data</strong> - IP address and browser type, used only to detect abuse and keep the site stable.</li>
           </ul>
         </section>
 

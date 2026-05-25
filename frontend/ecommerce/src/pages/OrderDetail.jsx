@@ -201,11 +201,14 @@ export default function OrderDetail() {
             <h2 className="orderdetail__section-title">Total</h2>
             <div className="orderdetail__sum-line">
               <span>Subtotal</span>
-              <PriceTag amount={order.totalAmount} size="md" />
+              <PriceTag amount={order.totalAmount - (order.shippingFee || 0)} size="md" />
             </div>
             <div className="orderdetail__sum-line">
               <span>Shipping</span>
-              <span className="orderdetail__free">Free</span>
+              {(order.shippingFee > 0)
+                ? <PriceTag amount={order.shippingFee} size="md" />
+                : <span className="orderdetail__free">Free</span>
+              }
             </div>
             <Divider />
             <div className="orderdetail__sum-line orderdetail__sum-line--strong">

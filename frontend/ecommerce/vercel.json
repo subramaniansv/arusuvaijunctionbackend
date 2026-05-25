@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap-products.xml",
+      "destination": "https://arusuvaijunctionbackend.onrender.com/arusuvai/sitemap-products.xml"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

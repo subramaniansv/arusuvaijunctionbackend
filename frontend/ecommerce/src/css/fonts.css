@@ -1,8 +1,13 @@
 /* ------------------------------------------------------------------
- * Web fonts. Loaded from Google Fonts so the bundle stays small.
+ * Web fonts.
  * - Fraunces : display / headings (serif, optical sizing)
  * - Manrope  : body text (sans)
  * - Noto Sans Tamil : Tamil-language labels (.tamil-text utility)
- * If you go offline-first later, self-host these and swap the @import.
+ *
+ * NOTE: the Google Fonts stylesheet is now loaded from index.html via
+ * <link rel="preconnect"> + non-blocking <link rel="stylesheet"> so it
+ * does not block first paint. The old @import was render-blocking and
+ * forced a serial fetch chain (CSS → @import → font files).
+ * If you go offline-first later, self-host these woff2 files and
+ * declare @font-face here.
  * ------------------------------------------------------------------ */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Manrope:wght@300;400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
