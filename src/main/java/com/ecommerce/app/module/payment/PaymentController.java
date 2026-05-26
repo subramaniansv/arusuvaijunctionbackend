@@ -131,6 +131,7 @@ public class PaymentController extends HttpServlet {
             payload.put("amount", init.amountInPaise); // paise
             payload.put("currency", init.currency);
             payload.put("keyId", init.keyId);
+            payload.put("shippingFee", init.shippingFee); // ₹, for frontend display confirmation
             SendResponseUtil.sendResponse(
                     new ApiResponse(true, "payment initiated", payload, 200), response);
         } catch (RuntimeException re) {

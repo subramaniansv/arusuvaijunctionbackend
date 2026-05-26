@@ -311,11 +311,15 @@ export function useUpdateUserStatus() {
 }
 
 export const ORDER_STATUSES = [
+  'PAYMENT_PENDING',
+  'PAID',
+  'PAYMENT_FAILED',
   'PENDING',
   'CONFIRMED',
   'SHIPPED',
   'DELIVERED',
   'CANCELLED',
+  'REFUNDED',
 ]
 
 export const USER_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'DEAD']

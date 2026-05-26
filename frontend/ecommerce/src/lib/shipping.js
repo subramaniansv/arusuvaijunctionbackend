@@ -1,78 +1,97 @@
 /**
  * India shipping cost calculator.
  *
- * Origin: Tirunelveli, Tamil Nadu (627xxx).
- * Destination zone is derived from the 6-digit Indian pincode.
- * Rates are typical Delhivery / Shiprocket small-parcel rates (2025).
+ * Origin: Tirunelveli Town (627006), Tamil Nadu.
+ * All products are non-documents (food items).
  *
- * Weight estimation: GRAMS_PER_ITEM grams per cart item line
- * (no product-level weight field yet; refine once weights are added).
+ * Rates effective 01-Feb-2026 (NEW BOOKING CHARGES).
+ *
+ * Weight estimation: GRAMS_PER_ITEM grams per quantity unit.
  *
  * Zone map (from Tirunelveli origin):
- *   A – Local  (Tirunelveli / Thoothukudi / Nagercoil)
- *   B – Tamil Nadu (rest of state)
- *   C – South India (Kerala, Karnataka, Andhra Pradesh, Telangana)
- *   D – Rest of India (mainland)
- *   E – Special (North East, J&K, Andaman & Nicobar, Lakshadweep)
+ *   LOCAL     – Tirunelveli district (627xxx)
+ *   LOCAL_OUT – Thoothukudi (628xxx) / Kanyakumari (629xxx)
+ *   TN        – Tamil Nadu rest (600–649)
+ *   KERALA    – Kerala (670–699)
+ *   BANGALORE – Bangalore city (560–562)
+ *   KARNATAKA – Rest of Karnataka (563–599)
+ *   METRO     – HYD/SEC (500–502), DEL (110), BOM (400), CCU (700)
+ *   REST      – Rest of India
+ *   ANDAMAN   – Andaman & Nicobar (744xxx)
  */
 
 /** Cart subtotal at or above this value → free shipping. */
 export const FREE_ABOVE_INR = 999
 
-/** Assumed weight per distinct cart item line in grams. */
+/** Assumed weight per unit item in grams. */
 export const GRAMS_PER_ITEM = 300
 
 /**
- * Rate table per zone.
- *   base      – ₹ for the first 500 g (minimum charge)
- *   perSlab   – ₹ per additional 500 g slab (or fraction thereof)
- *   slabGrams – slab size in grams
+ * Non-document rate table per zone (food products only).
+ * All amounts in ₹.
+ *   upto250 – flat charge for shipments ≤ 250 g
+ *   upto500 – flat charge for 250 g < weight ≤ 500 g
+ *   perKg   – additional charge per KG (ceiling) above 500 g
  */
 const ZONE_RATES = {
-  A: { base: 65,  perSlab: 25, slabGrams: 500 },
-  B: { base: 75,  perSlab: 30, slabGrams: 500 },
-  C: { base: 90,  perSlab: 40, slabGrams: 500 },
-  D: { base: 120, perSlab: 50, slabGrams: 500 },
-  E: { base: 160, perSlab: 70, slabGrams: 500 },
+  LOCAL:     { upto250:  25, upto500:  25, perKg:  30 },
+  LOCAL_OUT: { upto250:  35, upto500:  35, perKg:  40 },
+  TN:        { upto250:  70, upto500:  70, perKg:  80 },
+  KERALA:    { upto250:  85, upto500:  85, perKg: 100 },
+  BANGALORE: { upto250:  80, upto500:  80, perKg: 100 },
+  KARNATAKA: { upto250:  85, upto500:  85, perKg: 105 },
+  METRO:     { upto250: 100, upto500: 100, perKg: 145 },
+  REST:      { upto250: 105, upto500: 105, perKg: 150 },
+  ANDAMAN:   { upto250: 225, upto500: 250, perKg: 500 },
 }
 
 const ZONE_LABELS = {
-  A: 'Local (Tirunelveli / Thoothukudi)',
-  B: 'Tamil Nadu',
-  C: 'South India',
-  D: 'Rest of India',
-  E: 'North East / J&K / Andaman',
+  LOCAL:     'Local (Tirunelveli)',
+  LOCAL_OUT: 'Local Outer (Thoothukudi / Kanyakumari)',
+  TN:        'Tamil Nadu',
+  KERALA:    'Kerala',
+  BANGALORE: 'Bangalore',
+  KARNATAKA: 'Karnataka',
+  METRO:     'Metro (Hyderabad / Delhi / Mumbai / Kolkata)',
+  REST:      'Rest of India',
+  ANDAMAN:   'Andaman & Nicobar',
 }
 
 /**
  * Derive shipping zone from a 6-digit Indian pincode.
- * Falls back to zone D (mainland) for unknown / non-Indian pincodes.
+ * Falls back to REST for unknown / non-Indian pincodes.
  */
 function getZone(pincode) {
-  if (!pincode || !/^\d{6}$/.test(String(pincode).trim())) return 'D'
+  if (!pincode || !/^\d{6}$/.test(String(pincode).trim())) return 'REST'
   const p  = parseInt(pincode, 10)
   const p3 = Math.floor(p / 1000)   // first 3 digits
   const p2 = Math.floor(p / 10000)  // first 2 digits
 
-  // Zone A – Local (Tirunelveli 627, Thoothukudi 628, Nagercoil 629)
-  if (p3 === 627 || p3 === 628 || p3 === 629) return 'A'
+  // Local – Tirunelveli district (627xxx)
+  if (p3 === 627) return 'LOCAL'
 
-  // Zone B – Tamil Nadu (600–649)
-  if (p2 >= 60 && p2 <= 64) return 'B'
+  // Local Outer – Thoothukudi (628xxx) and Kanyakumari (629xxx)
+  if (p3 === 628 || p3 === 629) return 'LOCAL_OUT'
 
-  // Zone C – South India
-  // Kerala (670–695), Karnataka (560–595), AP / Telangana (500–535)
-  if ((p2 >= 67 && p2 <= 69) ||
-      (p2 >= 56 && p2 <= 59) ||
-      (p2 >= 50 && p2 <= 53)) return 'C'
+  // Tamil Nadu rest (600–649, excluding local zones above)
+  if (p2 >= 60 && p2 <= 64) return 'TN'
 
-  // Zone E – North East (780–799), J&K/HP (180–194), Andaman (744)
-  if ((p2 >= 78 && p2 <= 79) ||
-      (p2 >= 18 && p2 <= 19) ||
-      p3 === 744) return 'E'
+  // Kerala (670–699)
+  if (p2 >= 67 && p2 <= 69) return 'KERALA'
 
-  // Zone D – everything else (mainland India)
-  return 'D'
+  // Bangalore only (560–562)
+  if (p3 >= 560 && p3 <= 562) return 'BANGALORE'
+
+  // Karnataka rest (563–599)
+  if (p2 >= 56 && p2 <= 59) return 'KARNATAKA'
+
+  // Andaman & Nicobar (744xxx)
+  if (p3 === 744) return 'ANDAMAN'
+
+  // Major metros: HYD/SEC (500–502), DEL (110), BOM (400), CCU (700)
+  if ((p3 >= 500 && p3 <= 502) || p3 === 110 || p3 === 400 || p3 === 700) return 'METRO'
+
+  return 'REST'
 }
 
 /**
@@ -90,9 +109,12 @@ export function calcShipping(pincode, totalItems, merchandiseTotal) {
   const rate  = ZONE_RATES[zone]
   const grams = Math.max(1, totalItems) * GRAMS_PER_ITEM
 
-  // First 500 g → base rate; each additional 500 g slab (ceiling) → perSlab
-  const extraSlabs = Math.max(0, Math.ceil((grams - 500) / rate.slabGrams))
-  return rate.base + extraSlabs * rate.perSlab
+  if (grams <= 250) return rate.upto250
+  if (grams <= 500) return rate.upto500
+
+  // Above 500 g: base (upto500) + per-KG for each additional KG (ceiling)
+  const extraKg = Math.ceil((grams - 500) / 1000)
+  return rate.upto500 + extraKg * rate.perKg
 }
 
 /**
@@ -107,4 +129,5 @@ export function getZoneLabel(pincode) {
 /**
  * Minimum possible shipping fee (used in Cart page before pincode is known).
  */
-export const MIN_SHIPPING_INR = ZONE_RATES.A.base  // ₹65
+export const MIN_SHIPPING_INR = ZONE_RATES.LOCAL.upto250  // ₹25
+

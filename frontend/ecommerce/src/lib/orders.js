@@ -109,11 +109,15 @@ export function useCheckout() {
  * Helpers (status badge + date format).
  * ------------------------------------------------------------------ */
 export const ORDER_STATUS_VARIANT = {
-  PENDING:   'warning',
-  CONFIRMED: 'info',
-  SHIPPED:   'primary',
-  DELIVERED: 'success',
-  CANCELLED: 'danger',
+  PAYMENT_PENDING: 'warning',
+  PAID:            'success',
+  PAYMENT_FAILED:  'danger',
+  PENDING:         'warning',
+  CONFIRMED:       'info',
+  SHIPPED:         'primary',
+  DELIVERED:       'success',
+  CANCELLED:       'danger',
+  REFUNDED:        'neutral',
 }
 
 export function formatOrderDate(iso) {

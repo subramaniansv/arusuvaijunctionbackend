@@ -63,6 +63,21 @@ public class OrderRepository {
         return false;
     }
 
+    public boolean updateShippingFee(Connection connection, double shippingFee, UUID orderID) {
+        String sql = "update orders set shipping_fee = ? where order_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setDouble(1, shippingFee);
+            ps.setObject(2, orderID);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOG.error("sql exception at updateShippingFee ", e);
+        } catch (Exception e) {
+            LOG.error("unhandled exception at updateShippingFee ", e);
+        }
+        return false;
+    }
+
     public List<Order> findByUserId(UUID userId, int limit, int offset) {
         String sql = """
                 SELECT

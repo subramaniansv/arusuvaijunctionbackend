@@ -74,6 +74,10 @@ export default function Orders() {
           </li>
         ))}
       </ul>
+      <p className="orders__contact">
+        For order-related queries, call or WhatsApp us at{' '}
+        <a href="tel:+919894014063">+91 98940 14063</a>.
+      </p>
     </Container>
   )
 }

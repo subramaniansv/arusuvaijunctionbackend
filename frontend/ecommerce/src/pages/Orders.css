@@ -130,6 +130,20 @@
   align-items: center;
 }
 
+.orders__contact {
+  margin-top: var(--space-6);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.orders__contact a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.orders__contact a:hover { text-decoration: underline; }
+
 @media (max-width: 599px) {
   .orders__title { font-size: var(--text-2xl); }
   .orders__row-body {

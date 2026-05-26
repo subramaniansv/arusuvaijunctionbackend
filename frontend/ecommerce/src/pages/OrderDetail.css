@@ -263,6 +263,20 @@
 
 .orderdetail__back-btn { justify-content: space-between; }
 
+.orderdetail__contact {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+.orderdetail__contact a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.orderdetail__contact a:hover { text-decoration: underline; }
+
 @media (max-width: 599px) {
   .orderdetail__title { font-size: var(--text-2xl); }
   .orderdetail__item {

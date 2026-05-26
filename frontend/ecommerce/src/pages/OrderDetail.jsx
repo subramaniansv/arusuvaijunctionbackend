@@ -75,6 +75,8 @@ export default function OrderDetail() {
   const items = order.orderItems || []
   const status = order.status
   const isCancelled = status === 'CANCELLED'
+  const isPaymentFailed = status === 'PAYMENT_FAILED'
+  const isRefunded = status === 'REFUNDED'
 
   return (
     <Container size="xl" className="orderdetail">
@@ -145,6 +147,22 @@ export default function OrderDetail() {
                 <div>
                   <strong>Order cancelled</strong>
                   <p>This order has been cancelled. Any stock has been released.</p>
+                </div>
+              </div>
+            ) : isPaymentFailed ? (
+              <div className="orderdetail__cancelled">
+                <XCircle size={28} aria-hidden="true" />
+                <div>
+                  <strong>Payment failed</strong>
+                  <p>Your payment could not be processed. Please try placing a new order.</p>
+                </div>
+              </div>
+            ) : isRefunded ? (
+              <div className="orderdetail__cancelled">
+                <XCircle size={28} aria-hidden="true" />
+                <div>
+                  <strong>Order refunded</strong>
+                  <p>This order has been refunded. Please allow a few business days for the amount to reflect.</p>
                 </div>
               </div>
             ) : (
@@ -240,6 +258,11 @@ export default function OrderDetail() {
           >
             View all orders
           </Button>
+
+          <p className="orderdetail__contact">
+            For order-related queries, call or WhatsApp us at{' '}
+            <a href="tel:+919894014063">+91 98940 14063</a>.
+          </p>
         </aside>
       </div>
     </Container>
@@ -263,7 +286,11 @@ export default function OrderDetail() {
  * The current status is highlighted; everything before it is "done".
  * ================================================================= */
 function Timeline({ status }) {
-  const currentIdx = Math.max(0, TIMELINE.findIndex((s) => s.key === status))
+  // Razorpay-created orders start as PAYMENT_PENDING then move to PAID
+  // before the admin confirms them. Normalise both to PENDING so the
+  // first step ("Placed") shows as the active node.
+  const normalised = (status === 'PAID' || status === 'PAYMENT_PENDING') ? 'PENDING' : status
+  const currentIdx = Math.max(0, TIMELINE.findIndex((s) => s.key === normalised))
   return (
     <ol className="orderdetail__timeline" aria-label="Order progress">
       {TIMELINE.map((step, i) => {

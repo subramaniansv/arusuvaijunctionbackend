@@ -271,7 +271,7 @@ export default function Checkout() {
       if (order?.orderId) {
         navigate(`/orders/${order.orderId}`, {
           replace: true,
-          state: { justPaid: true, order },
+          state: { justPlaced: true, order },
         });
       }
       // order === null => popup dismissed; stay on checkout.

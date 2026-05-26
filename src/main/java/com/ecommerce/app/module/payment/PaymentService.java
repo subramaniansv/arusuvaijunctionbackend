@@ -80,12 +80,14 @@ public class PaymentService {
         public final long amountInPaise;
         public final String currency;
         public final String keyId;
-        public InitiationResponse(UUID orderId, String rpOrderId, long amount, String currency, String keyId) {
+        public final double shippingFee;
+        public InitiationResponse(UUID orderId, String rpOrderId, long amount, String currency, String keyId, double shippingFee) {
             this.orderId = orderId;
             this.razorpayOrderId = rpOrderId;
             this.amountInPaise = amount;
             this.currency = currency;
             this.keyId = keyId;
+            this.shippingFee = shippingFee;
         }
     }
 
@@ -112,11 +114,13 @@ public class PaymentService {
             connection = DBConfig.getConnection();
             connection.setAutoCommit(false);
 
+            // Create order header with shipping_fee=0; updated below once
+            // merchandise total is known and server-side shipping is computed.
             Order order = new Order();
             order.setUserId(userId);
             order.setShippingAddress(shippingAddress);
             order.setPhone(phone);
-            order.setShippingFee(shippingFee);
+            order.setShippingFee(0);
             Order created = orderRepository.create(connection, order);
             if (created == null || created.getOrderId() == null) {
                 connection.rollback();
@@ -125,6 +129,7 @@ public class PaymentService {
             order.setOrderId(created.getOrderId());
 
             double total = 0.0;
+            int totalQty = 0;
             for (CartItem ci : cartItems) {
                 Product product = productRepository.findById(ci.getProductId());
                 if (product == null || product.getId() == null || !product.isActive()) {
@@ -165,10 +170,14 @@ public class PaymentService {
                     throw new RuntimeException("could not persist order item");
                 }
                 total += linePrice * ci.getQuantity();
+                totalQty += ci.getQuantity();
             }
 
-            // Add shipping charge to the order total.
-            if (shippingFee > 0) total += shippingFee;
+            // Compute shipping server-side from the authoritative rate table;
+            // ignore any client-provided shippingFee value.
+            double computedShipping = ShippingCalculator.calculate(shippingAddress, totalQty, total);
+            orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
+            if (computedShipping > 0) total += computedShipping;
 
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PAYMENT_PENDING, order.getOrderId());
@@ -192,7 +201,7 @@ public class PaymentService {
             }
 
             connection.commit();
-            return new InitiationResponse(order.getOrderId(), rpOrderId, amountInPaise, "INR", razorpay.getKeyId());
+            return new InitiationResponse(order.getOrderId(), rpOrderId, amountInPaise, "INR", razorpay.getKeyId(), computedShipping);
         } catch (RuntimeException e) {
             safeRollback(connection);
             throw e;
@@ -244,11 +253,16 @@ public class PaymentService {
                 throw new RuntimeException("insufficient stock for '" + product.getName() + "'");
             }
 
+            // Compute shipping server-side before creating the order;
+            // ignore any client-provided shippingFee value.
+            double merchandiseTotal = linePrice * quantity;
+            double computedShipping = ShippingCalculator.calculate(shippingAddress, quantity, merchandiseTotal);
+
             Order order = new Order();
             order.setUserId(userId);
             order.setShippingAddress(shippingAddress);
             order.setPhone(phone);
-            order.setShippingFee(shippingFee);
+            order.setShippingFee(computedShipping);
             Order created = orderRepository.create(connection, order);
             if (created == null || created.getOrderId() == null) {
                 connection.rollback();
@@ -269,9 +283,7 @@ public class PaymentService {
                 throw new RuntimeException("could not persist order item");
             }
 
-            double total = linePrice * quantity;
-            // Add shipping charge to the order total.
-            if (shippingFee > 0) total += shippingFee;
+            double total = merchandiseTotal + computedShipping;
 
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PAYMENT_PENDING, order.getOrderId());
@@ -293,7 +305,7 @@ public class PaymentService {
             }
 
             connection.commit();
-            return new InitiationResponse(order.getOrderId(), rpOrderId, amountInPaise, "INR", razorpay.getKeyId());
+            return new InitiationResponse(order.getOrderId(), rpOrderId, amountInPaise, "INR", razorpay.getKeyId(), computedShipping);
         } catch (RuntimeException e) {
             safeRollback(connection);
             throw e;

@@ -20,6 +20,7 @@ import com.ecommerce.app.module.iam.repository.UserRepository;
 import com.ecommerce.app.module.mail.MailService;
 import com.ecommerce.app.module.mail.MailTemplates;
 import com.ecommerce.app.module.product.*;
+import com.ecommerce.app.module.payment.ShippingCalculator;
 import java.util.*;
 public class OrderService {
     private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
@@ -293,6 +294,7 @@ public class OrderService {
 
             // 2. validate stock & create order_items using live product price
             double total = 0.0;
+            int totalQty = 0;
             for (CartItem ci : cartItems) {
                 Product product = productRepository.findById(ci.getProductId());
                 if (product == null || product.getId() == null) {
@@ -351,9 +353,15 @@ public class OrderService {
                     throw new RuntimeException("could not persist order item");
                 }
                 total += linePrice * ci.getQuantity();
+                totalQty += ci.getQuantity();
             }
 
             // 3. finalize order
+            double computedShipping = ShippingCalculator.calculate(shippingAddress, totalQty, total);
+            if (computedShipping > 0) {
+                orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
+                total += computedShipping;
+            }
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PENDING, order.getOrderId());
 
@@ -478,7 +486,12 @@ public class OrderService {
             }
 
             // 5. totals + status
-            double total = linePrice * quantity;
+            double merchandiseTotal = linePrice * quantity;
+            double computedShipping = ShippingCalculator.calculate(shippingAddress, quantity, merchandiseTotal);
+            if (computedShipping > 0) {
+                orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
+            }
+            double total = merchandiseTotal + computedShipping;
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PENDING, order.getOrderId());
 
