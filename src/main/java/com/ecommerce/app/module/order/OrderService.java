@@ -487,7 +487,8 @@ public class OrderService {
 
             // 5. totals + status
             double merchandiseTotal = linePrice * quantity;
-            double computedShipping = ShippingCalculator.calculate(shippingAddress, quantity, merchandiseTotal);
+            int totalGrams = ShippingCalculator.variantGrams(variantLabel) * quantity;
+            double computedShipping = ShippingCalculator.calculateByGrams(shippingAddress, totalGrams, merchandiseTotal);
             if (computedShipping > 0) {
                 orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
             }
