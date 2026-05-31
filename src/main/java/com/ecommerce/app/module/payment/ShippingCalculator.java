@@ -48,7 +48,7 @@ public final class ShippingCalculator {
             Pattern.compile("\\b(pc|pcs|piece|pieces|no|nos|count|pack|packs)\\b");
 
     /** Orders at or above this merchandise total (₹) get free shipping. */
-    static final double FREE_ABOVE_INR = 499.0;
+    public static final double FREE_ABOVE_INR = 499.0;
 
     /** Rate entry: upto250g, upto500g, perKgAbove500 – all in ₹, non-document. */
     private static final class Rate {
@@ -128,15 +128,14 @@ public final class ShippingCalculator {
      *
      * <p>Variant labels encode the pack size, e.g. "250g", "500 g",
      * "1kg", or piece counts like "5 pcs". Weight labels are parsed to
-     * their gram value; piece/count labels fall back to {@link #PCS_GRAMS}
-     * (kept low on purpose); anything unrecognized (or no variant) falls
-     * back to {@link #GRAMS_PER_ITEM}.
+     * their gram value; piece/count labels use {@link #PCS_GRAMS}.
+     * Returns 0 if no label is provided (caller must handle missing variant).
      *
-     * @param label variant label (may be null for single-size products)
-     * @return estimated weight in grams for one unit of this variant
+     * @param label variant label (null means variant info not available)
+     * @return weight in grams for one unit of this variant (0 if unknown)
      */
     public static int variantGrams(String label) {
-        if (label == null || label.isBlank()) return GRAMS_PER_ITEM;
+        if (label == null || label.isBlank()) return 0;
         String s = label.toLowerCase().trim();
 
         Matcher m = WEIGHT_RE.matcher(s);
@@ -152,7 +151,8 @@ public final class ShippingCalculator {
         // No weight token — treat piece/count packs as the lightest tier.
         if (PIECE_RE.matcher(s).find()) return PCS_GRAMS;
 
-        return GRAMS_PER_ITEM;
+        // Label exists but doesn't match patterns — treat as piece item
+        return PCS_GRAMS;
     }
 
     /** Extract the first 6-digit numeric token from an address string. */

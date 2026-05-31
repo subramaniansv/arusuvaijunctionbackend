@@ -89,6 +89,8 @@ public class OrderRepository {
                     o.shipping_address,
                     o.phone_number,
                     o.ordered_at,
+                    o.tracking_number,
+                    o.shipping_provider,
 
                     oi.order_item_id,
                     oi.product_id,
@@ -137,6 +139,8 @@ public class OrderRepository {
                     order.setShippingAddress(rs.getString("shipping_address"));
                     order.setPhone(rs.getString("phone_number"));
                     order.setorderedAt(rs.getTimestamp("ordered_at"));
+                    order.setTrackingNumber(rs.getString("tracking_number"));
+                    order.setShippingProvider(rs.getString("shipping_provider"));
                     order.setOrderItems(new ArrayList<>());
                     orderMap.put(orderId, order);
                 }
@@ -173,6 +177,8 @@ public class OrderRepository {
                     o.shipping_address,
                     o.phone_number,
                     o.ordered_at,
+                    o.tracking_number,
+                    o.shipping_provider,
 
                     oi.order_item_id,
                     oi.product_id,
@@ -216,6 +222,8 @@ public class OrderRepository {
                     order.setShippingAddress(rs.getString("shipping_address"));
                     order.setPhone(rs.getString("phone_number"));
                     order.setorderedAt(rs.getTimestamp("ordered_at"));
+                    order.setTrackingNumber(rs.getString("tracking_number"));
+                    order.setShippingProvider(rs.getString("shipping_provider"));
                     order.setOrderItems(new ArrayList<>());
                     orderMap.put(orderId, order);
                 }
@@ -269,6 +277,8 @@ public class OrderRepository {
                     o.shipping_address,
                     o.phone_number,
                     o.ordered_at,
+                    o.tracking_number,
+                    o.shipping_provider,
                     oi.order_item_id,
                     oi.product_id,
                     oi.variant_id,
@@ -309,6 +319,8 @@ public class OrderRepository {
                     order.setShippingAddress(rs.getString("shipping_address"));
                     order.setPhone(rs.getString("phone_number"));
                     order.setorderedAt(rs.getTimestamp("ordered_at"));
+                    order.setTrackingNumber(rs.getString("tracking_number"));
+                    order.setShippingProvider(rs.getString("shipping_provider"));
                     order.setOrderItems(new ArrayList<>());
                     orderMap.put(orderId, order);
                 }

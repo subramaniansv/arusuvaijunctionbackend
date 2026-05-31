@@ -21,9 +21,11 @@ import com.ecommerce.app.module.mail.MailService;
 import com.ecommerce.app.module.mail.MailTemplates;
 import com.ecommerce.app.module.product.*;
 import com.ecommerce.app.module.payment.ShippingCalculator;
+import com.ecommerce.app.module.shipping.ShippingService;
 import java.util.*;
 public class OrderService {
     private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
+    private final ShippingService shippingService = new ShippingService();
 
           OrderRepository orderRepository = new OrderRepository();
         OrderItemRepository itemRepository = new OrderItemRepository();
@@ -357,7 +359,8 @@ public class OrderService {
             }
 
             // 3. finalize order
-            double computedShipping = ShippingCalculator.calculateByGrams(shippingAddress, totalGrams, total);
+            String pincode = extractPincode(shippingAddress);
+            double computedShipping = shippingService.calculateRate(shippingAddress, pincode, totalGrams, total);
             if (computedShipping > 0) {
                 orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
                 total += computedShipping;
@@ -488,7 +491,8 @@ public class OrderService {
             // 5. totals + status
             double merchandiseTotal = linePrice * quantity;
             int totalGrams = ShippingCalculator.variantGrams(variantLabel) * quantity;
-            double computedShipping = ShippingCalculator.calculateByGrams(shippingAddress, totalGrams, merchandiseTotal);
+            String pincode = extractPincode(shippingAddress);
+            double computedShipping = shippingService.calculateRate(shippingAddress, pincode, totalGrams, merchandiseTotal);
             if (computedShipping > 0) {
                 orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
             }
@@ -542,6 +546,16 @@ public class OrderService {
         } catch (Exception e) {
             LOG.error("rollback failed at checkout  ", e);
         }
+    }
+
+    private static final java.util.regex.Pattern PINCODE_PATTERN =
+            java.util.regex.Pattern.compile("\\b(\\d{6})\\b");
+
+    /** Extract 6-digit pincode from address string. Returns "000000" if none found. */
+    private String extractPincode(String address) {
+        if (address == null) return "000000";
+        java.util.regex.Matcher m = PINCODE_PATTERN.matcher(address);
+        return m.find() ? m.group(1) : "000000";
     }
 
     private void closeQuietly(Connection connection) {

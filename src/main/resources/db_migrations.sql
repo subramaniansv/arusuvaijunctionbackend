@@ -1,29 +1,16 @@
--- Run these ALTER TABLE statements once against your database.
 
--- 1. Store shipping fee per order
+-- 4. Delhivery shipping integration: tracking columns on orders
 ALTER TABLE orders
-    ADD COLUMN IF NOT EXISTS shipping_fee DOUBLE PRECISION NOT NULL DEFAULT 0;
+    ADD COLUMN IF NOT EXISTS tracking_number VARCHAR(50);
 
--- 2. Track user last login time
-ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS last_login TIMESTAMP WITH TIME ZONE;
+ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS shipping_provider VARCHAR(30) DEFAULT 'STATIC';
 
--- 3. Saved addresses per user (one user can have many addresses)
-CREATE TABLE IF NOT EXISTS user_addresses (
-    address_id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id      UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    label        VARCHAR(80),          -- e.g. "Home", "Office"
-    full_name    VARCHAR(120) NOT NULL,
-    phone        VARCHAR(30)  NOT NULL,
-    line1        VARCHAR(160) NOT NULL,
-    line2        VARCHAR(160),
-    city         VARCHAR(80)  NOT NULL,
-    state        VARCHAR(80)  NOT NULL,
-    pincode      VARCHAR(20)  NOT NULL,
-    country      VARCHAR(60)  NOT NULL DEFAULT 'IN',
-    is_default   BOOLEAN      NOT NULL DEFAULT FALSE,
-    created_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
-);
+CREATE INDEX IF NOT EXISTS idx_orders_tracking_number ON orders(tracking_number);
 
-CREATE INDEX IF NOT EXISTS idx_user_addresses_user_id ON user_addresses(user_id);
+-- 5. Fix cart unique constraint to allow multiple variants of the same product
+-- Old constraint: UNIQUE(cart_id, product_id) — prevents adding 100g and 250g of same product
+-- New constraint: UNIQUE(cart_id, product_id, variant_id) — allows different variants
+ALTER TABLE cart_items DROP CONSTRAINT IF EXISTS uq_cart_product;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_cart_product_variant
+    ON cart_items (cart_id, product_id, COALESCE(variant_id, '00000000-0000-0000-0000-000000000000'::uuid));

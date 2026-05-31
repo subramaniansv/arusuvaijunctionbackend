@@ -73,6 +73,17 @@ public class AuthorizationFilter implements Filter {
             chain.doFilter(request, response);
             return;
         }
+        // Public shipping availability & rate check. Customers need to check
+        // serviceability/pricing before checkout (no login required).
+        // Track action still requires auth (handled below).
+        if ("GET".equalsIgnoreCase(httpMethod) && path != null
+                && path.startsWith("/api/shipping")) {
+            String action = request.getParameter("action");
+            if ("check".equals(action) || "rate".equals(action)) {
+                chain.doFilter(request, response);
+                return;
+            }
+        }
         // Razorpay webhook: server-to-server callback from Razorpay's
         // infrastructure. No JWT possible. Authenticated INSIDE the
         // controller by HMAC-SHA256 over the raw request body using the

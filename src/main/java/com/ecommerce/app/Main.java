@@ -37,6 +37,8 @@ import com.ecommerce.app.module.contact.ContactController;
 import com.ecommerce.app.module.review.ReviewController;
 import com.ecommerce.app.module.search.ProductSearchController;
 import com.ecommerce.app.module.search.ProductSearchIndexer;
+import com.ecommerce.app.module.shipping.ShippingController;
+import com.ecommerce.app.module.shipping.AdminShippingController;
 import com.ecommerce.app.security.GlobalExceptionFilter;
 
 import jakarta.servlet.Filter;
@@ -93,6 +95,9 @@ public final class Main {
         LOG.info("Health probe: http://localhost:{}{}/health", port, contextPath);
         LOG.info("APP_BASE_URL  = {}", com.ecommerce.app.module.iam.config.ENVConfig.get("APP_BASE_URL"));
         LOG.info("APP_HOME_URL  = {}", com.ecommerce.app.module.iam.config.ENVConfig.get("APP_HOME_URL"));
+
+        // One-time migration: backfill variant_label on legacy order_items
+        com.ecommerce.app.module.order.FixVariantMigration.run();
 
         // Best-effort Elasticsearch bootstrap: create the index + alias
         // and seed it from Postgres. Runs in the background so a missing
@@ -175,6 +180,10 @@ public final class Main {
         mount(ctx, new ContactController(), "/api/contact");
         mount(ctx, new MailController(), "/api/mail");
         mount(ctx, new AdminController(), "/api/admin");
+
+        // Shipping (Delhivery integration)
+        mount(ctx, new ShippingController(), "/api/shipping");
+        mount(ctx, new AdminShippingController(), "/api/admin/shipping");
 
         // Health probes (multi-pattern: exact and sub-paths)
         mount(ctx, new HealthController(), "/health", "/health/*");

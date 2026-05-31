@@ -66,6 +66,15 @@ public class CartService {
         double effectivePrice = product.getPrice();
         int effectiveStock = product.getStockQuantity();
         String variantLabel = null;
+
+        // If product has variants, variantId is required
+        if (variantId == null) {
+            List<ProductVariant> variants = productVariantRepository.findByProductId(productId);
+            if (variants != null && !variants.isEmpty()) {
+                throw new RuntimeException("This product has variants. Please select a variant (e.g. size/weight).");
+            }
+        }
+
         if (variantId != null) {
             variant = productVariantRepository.findById(variantId);
             if (variant == null || !variant.isActive()) {

@@ -20,6 +20,10 @@ public class Order {
     // without a second round-trip. NULL on plain order fetches.
     private String whatsappMessage;
     private String whatsappLink;
+
+    // Delhivery shipping fields
+    private String trackingNumber;   // AWB / waybill
+    private String shippingProvider; // e.g. "DELHIVERY"
     
     public UUID getOrderId() {
         return orderId;
@@ -92,5 +96,17 @@ public class Order {
     }
     public void setWhatsappLink(String whatsappLink) {
         this.whatsappLink = whatsappLink;
+    }
+    public String getTrackingNumber() {
+        return trackingNumber;
+    }
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
+    }
+    public String getShippingProvider() {
+        return shippingProvider;
+    }
+    public void setShippingProvider(String shippingProvider) {
+        this.shippingProvider = shippingProvider;
     }
 }
