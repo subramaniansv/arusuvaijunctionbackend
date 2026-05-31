@@ -70,7 +70,7 @@ public final class ShippingCalculator {
         //                             upto250  upto500  perKg
         m.put("LOCAL",     new Rate(  25,      25,      30  ));
         m.put("LOCAL_OUT", new Rate(  35,      35,      40  ));
-        m.put("TN",        new Rate(  70,      70,      80  ));
+        m.put("TN",        new Rate(  70,      70,      30  ));
         m.put("KERALA",    new Rate(  85,      85,     100  ));
         m.put("BANGALORE", new Rate(  80,      80,     100  ));
         m.put("KARNATAKA", new Rate(  85,      85,     105  ));
