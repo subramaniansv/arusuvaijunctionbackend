@@ -37,7 +37,7 @@ public final class ShippingCalculator {
      * Kept deliberately low so piece-based items land in the cheapest
      * shipping tier.
      */
-    static final int PCS_GRAMS = 100;
+    static final int PCS_GRAMS = 165;
 
     /** Matches a weight token in a variant label, e.g. "250g", "1.5 kg". */
     private static final Pattern WEIGHT_RE =
