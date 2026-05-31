@@ -31,8 +31,24 @@ public final class ShippingCalculator {
     /** Estimated grams per unit item (no product-level weight field yet). */
     static final int GRAMS_PER_ITEM = 300;
 
+    /**
+     * Fallback weight (₹ shipping is weight-tiered) for piece/count
+     * variants like "5 pcs" / "10 nos" whose label carries no mass.
+     * Kept deliberately low so piece-based items land in the cheapest
+     * shipping tier.
+     */
+    static final int PCS_GRAMS = 100;
+
+    /** Matches a weight token in a variant label, e.g. "250g", "1.5 kg". */
+    private static final Pattern WEIGHT_RE =
+            Pattern.compile("(\\d+(?:\\.\\d+)?)\\s*(kg|kgs|g|gm|gms|gram|grams)\\b");
+
+    /** Matches piece/count variant labels, e.g. "5 pcs", "10 nos". */
+    private static final Pattern PIECE_RE =
+            Pattern.compile("\\b(pc|pcs|piece|pieces|no|nos|count|pack|packs)\\b");
+
     /** Orders at or above this merchandise total (₹) get free shipping. */
-    static final double FREE_ABOVE_INR = 999.0;
+    static final double FREE_ABOVE_INR = 499.0;
 
     /** Rate entry: upto250g, upto500g, perKgAbove500 – all in ₹, non-document. */
     private static final class Rate {
@@ -77,13 +93,27 @@ public final class ShippingCalculator {
      * @return shipping fee in ₹ (never negative)
      */
     public static double calculate(String shippingAddress, int totalItems, double merchandiseTotal) {
+        return calculateByGrams(shippingAddress, Math.max(1, totalItems) * GRAMS_PER_ITEM, merchandiseTotal);
+    }
+
+    /**
+     * Calculate the shipping fee (₹) from an explicit total weight.
+     * Callers derive the weight from each line item's variant label
+     * via {@link #variantGrams(String)}.
+     *
+     * @param shippingAddress  full shipping address string; pincode is extracted via regex
+     * @param totalGrams       total shipment weight in grams
+     * @param merchandiseTotal order value before shipping (₹); returns 0 when ≥ FREE_ABOVE_INR
+     * @return shipping fee in ₹ (never negative)
+     */
+    public static double calculateByGrams(String shippingAddress, int totalGrams, double merchandiseTotal) {
         if (merchandiseTotal >= FREE_ABOVE_INR) return 0.0;
 
         String pincode = extractPincode(shippingAddress);
         String zone    = getZone(pincode);
         Rate   rate    = ZONE_RATES.get(zone);
 
-        int grams = Math.max(1, totalItems) * GRAMS_PER_ITEM;
+        int grams = Math.max(1, totalGrams);
 
         if (grams <= 250) return rate.upto250;
         if (grams <= 500) return rate.upto500;
@@ -91,6 +121,38 @@ public final class ShippingCalculator {
         // Above 500 g: upto500 base + per-KG for each additional KG (ceiling division)
         int extraKg = (int) Math.ceil((grams - 500.0) / 1000.0);
         return rate.upto500 + extraKg * rate.perKg;
+    }
+
+    /**
+     * Derive the per-unit weight (grams) of a variant from its label.
+     *
+     * <p>Variant labels encode the pack size, e.g. "250g", "500 g",
+     * "1kg", or piece counts like "5 pcs". Weight labels are parsed to
+     * their gram value; piece/count labels fall back to {@link #PCS_GRAMS}
+     * (kept low on purpose); anything unrecognized (or no variant) falls
+     * back to {@link #GRAMS_PER_ITEM}.
+     *
+     * @param label variant label (may be null for single-size products)
+     * @return estimated weight in grams for one unit of this variant
+     */
+    public static int variantGrams(String label) {
+        if (label == null || label.isBlank()) return GRAMS_PER_ITEM;
+        String s = label.toLowerCase().trim();
+
+        Matcher m = WEIGHT_RE.matcher(s);
+        if (m.find()) {
+            double value = Double.parseDouble(m.group(1));
+            String unit  = m.group(2);
+            int grams = unit.startsWith("kg")
+                    ? (int) Math.round(value * 1000)
+                    : (int) Math.round(value);
+            return Math.max(1, grams);
+        }
+
+        // No weight token — treat piece/count packs as the lightest tier.
+        if (PIECE_RE.matcher(s).find()) return PCS_GRAMS;
+
+        return GRAMS_PER_ITEM;
     }
 
     /** Extract the first 6-digit numeric token from an address string. */

@@ -29,6 +29,10 @@ public class ProductController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            // Multipart text parts default to ISO-8859-1 decoding, which mangles
+            // non-Latin (e.g. Tamil) characters into mojibake. Force UTF-8 before
+            // reading any parameter so the product JSON keeps its original script.
+            request.setCharacterEncoding("UTF-8");
             String json = request.getParameter("product");
             Product product = ProductConveterUtil.stringtoDto(json);
             product.setActive(true);

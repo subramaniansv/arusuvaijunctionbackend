@@ -294,7 +294,7 @@ public class OrderService {
 
             // 2. validate stock & create order_items using live product price
             double total = 0.0;
-            int totalQty = 0;
+            int totalGrams = 0;
             for (CartItem ci : cartItems) {
                 Product product = productRepository.findById(ci.getProductId());
                 if (product == null || product.getId() == null) {
@@ -353,11 +353,11 @@ public class OrderService {
                     throw new RuntimeException("could not persist order item");
                 }
                 total += linePrice * ci.getQuantity();
-                totalQty += ci.getQuantity();
+                totalGrams += ShippingCalculator.variantGrams(variantLabel) * ci.getQuantity();
             }
 
             // 3. finalize order
-            double computedShipping = ShippingCalculator.calculate(shippingAddress, totalQty, total);
+            double computedShipping = ShippingCalculator.calculateByGrams(shippingAddress, totalGrams, total);
             if (computedShipping > 0) {
                 orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
                 total += computedShipping;

@@ -129,7 +129,7 @@ public class PaymentService {
             order.setOrderId(created.getOrderId());
 
             double total = 0.0;
-            int totalQty = 0;
+            int totalGrams = 0;
             for (CartItem ci : cartItems) {
                 Product product = productRepository.findById(ci.getProductId());
                 if (product == null || product.getId() == null || !product.isActive()) {
@@ -170,12 +170,13 @@ public class PaymentService {
                     throw new RuntimeException("could not persist order item");
                 }
                 total += linePrice * ci.getQuantity();
-                totalQty += ci.getQuantity();
+                totalGrams += ShippingCalculator.variantGrams(variantLabel) * ci.getQuantity();
             }
 
             // Compute shipping server-side from the authoritative rate table;
-            // ignore any client-provided shippingFee value.
-            double computedShipping = ShippingCalculator.calculate(shippingAddress, totalQty, total);
+            // weight is derived from each variant label. Ignore any
+            // client-provided shippingFee value.
+            double computedShipping = ShippingCalculator.calculateByGrams(shippingAddress, totalGrams, total);
             orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
             if (computedShipping > 0) total += computedShipping;
 
@@ -254,9 +255,11 @@ public class PaymentService {
             }
 
             // Compute shipping server-side before creating the order;
-            // ignore any client-provided shippingFee value.
+            // weight is derived from the variant label. Ignore any
+            // client-provided shippingFee value.
             double merchandiseTotal = linePrice * quantity;
-            double computedShipping = ShippingCalculator.calculate(shippingAddress, quantity, merchandiseTotal);
+            int totalGrams = ShippingCalculator.variantGrams(variantLabel) * quantity;
+            double computedShipping = ShippingCalculator.calculateByGrams(shippingAddress, totalGrams, merchandiseTotal);
 
             Order order = new Order();
             order.setUserId(userId);

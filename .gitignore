@@ -26,10 +26,6 @@ Thumbs.db
 nohup.out
 
 # ---------------- frontend ----------------
-frontend/ecommerce/node_modules/
-frontend/ecommerce/dist/
-frontend/ecommerce/.vite/
-frontend/ecommerce/npm-debug.log*
-frontend/ecommerce/.env
-frontend/ecommerce/.env.*
-!frontend/ecommerce/.env.example
+# The frontend has its own dedicated repo (arusuvaijunctionfrontend).
+# Do not track it in the backend repo.
+frontend/
