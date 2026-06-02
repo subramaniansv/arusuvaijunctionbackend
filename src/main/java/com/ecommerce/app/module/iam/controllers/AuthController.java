@@ -46,6 +46,31 @@ public class AuthController extends HttpServlet {
             return;
         }
 
+        // Sign in with Google: body is { "credential": "<google id token>" }.
+        boolean isGoogle = Boolean.parseBoolean(request.getParameter("isGoogle"));
+        if (isGoogle) {
+            String credential = readFieldFromBody(request, "credential");
+            if (credential == null || credential.isBlank()) {
+                SendResponseUtil.sendResponse(
+                        new ApiResponse(false, "google credential required", null, 400), response);
+                return;
+            }
+            RefreshToken refreshToken = new RefreshToken();
+            refreshToken.setIpAddress(request.getRemoteAddr());
+            refreshToken.setUserAgent(request.getHeader("User-Agent"));
+            try {
+                TokenResponse tokenResponse = service.loginWithGoogle(credential, refreshToken);
+                SendResponseUtil.sendResponse(
+                        new ApiResponse(true, "user logged in", tokenResponse, 200), response);
+            } catch (Exception e) {
+                String reason = (e.getMessage() == null || e.getMessage().isBlank())
+                        ? "google sign-in failed" : e.getMessage();
+                SendResponseUtil.sendResponse(
+                        new ApiResponse(false, reason, null, 401), response);
+            }
+            return;
+        }
+
         // Register / login.
         User user = UserConverterUtil.requestToDto(request);
         if (user == null) {
@@ -129,10 +154,14 @@ public class AuthController extends HttpServlet {
     }
 
     private String readTokenFromBody(HttpServletRequest request) {
+        return readFieldFromBody(request, "token");
+    }
+
+    private String readFieldFromBody(HttpServletRequest request, String field) {
         try {
             JsonNode body = MAPPER.readTree(request.getInputStream());
-            if (body != null && body.hasNonNull("token")) {
-                return body.get("token").asText();
+            if (body != null && body.hasNonNull(field)) {
+                return body.get(field).asText();
             }
         } catch (Exception e) {
             // fall through — caller treats null as missing

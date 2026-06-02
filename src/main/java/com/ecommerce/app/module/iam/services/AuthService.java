@@ -14,6 +14,7 @@ import com.ecommerce.app.module.iam.repository.UserRepository;
 import com.ecommerce.app.module.iam.services.EmailVerificationService;
 import com.ecommerce.app.module.iam.util.JwtUtil;
 import com.ecommerce.app.module.iam.util.PasswordUtil;
+import com.ecommerce.app.module.iam.util.GoogleTokenVerifier;
 import com.ecommerce.app.module.mail.MailService;
 import com.ecommerce.app.module.mail.MailTemplates;
 
@@ -95,6 +96,12 @@ public class AuthService {
       if(!userDB.getStatus().equals(UserStatus.ACTIVE)){
         throw new RuntimeException("user status is "+userDB.getStatus().name());
       }
+      // Google-only accounts carry the OAuth sentinel instead of a real hash.
+      // Detect it here and steer the user to Google rather than running
+      // verify() (which would just say "invalid email or password").
+      if (UserRepository.OAUTH_PASSWORD_SENTINEL.equals(userDB.getPasswordHash())) {
+        throw new RuntimeException("This account was created with Google. Please continue with Google sign-in.");
+      }
       boolean isPasswordVerified =  PasswordUtil.verify(user.getPasswordHash(), userDB.getPasswordHash());
       if(!isPasswordVerified){
         throw new RuntimeException("invalid email or password");
@@ -124,6 +131,60 @@ public class AuthService {
         return tokenResponse;
 
     }
+
+    /**
+     * Sign in (or transparently sign up) with a Google ID token.
+     *
+     * The token is verified by {@link GoogleTokenVerifier} (signature via
+     * Google, audience + email_verified by us). We then match the user by
+     * email:
+     *   - existing row  -> issue tokens (works for users who originally
+     *     registered with a password too; same person, one account).
+     *   - no row        -> create a passwordless account (OAuth sentinel hash,
+     *     email already verified) and issue tokens.
+     * We never overwrite an existing password hash here, so a password user
+     * who later uses Google keeps both login methods.
+     */
+    public TokenResponse loginWithGoogle(String credential, RefreshToken refreshToken) {
+        GoogleTokenVerifier.GoogleProfile profile = GoogleTokenVerifier.verify(credential);
+
+        User user = userRepository.getUserWithPassword(profile.email);
+        if (user == null || user.getId() == null) {
+            User toCreate = new User();
+            toCreate.setEmail(profile.email);
+            toCreate.setFirstName(profile.firstName);
+            toCreate.setLastName(profile.lastName);
+            user = userRepository.createOAuthUser(toCreate);
+            if (user == null || user.getId() == null) {
+                throw new RuntimeException("could not create account");
+            }
+            // Fire-and-forget welcome email. No verification mail: Google has
+            // already proven the address.
+            if (user.getEmail() != null && !user.getEmail().isBlank()) {
+                MailService.get().send(
+                        user.getEmail(),
+                        "Welcome to Arusuvai",
+                        MailTemplates.welcome(user.getFirstName()));
+            }
+        } else if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+            throw new RuntimeException("user status is " + user.getStatus().name());
+        }
+
+        List<Role> roles = mapperRepository.getRolesAndPermissionsByUserId(user.getId());
+        TokenResponse tokenResponse = new TokenResponse();
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail(), roles);
+        String refreshTokenString = jwtUtil.generateRefreshToken(user.getId());
+        refreshToken.setTokenHash(refreshTokenString);
+        refreshToken.setUserId(user.getId());
+        refreshToken = authRepository.create(refreshToken);
+        tokenResponse.setExpiresIn(System.currentTimeMillis() + 86400000L);
+        tokenResponse.setAccessToken(accessToken);
+        tokenResponse.setRefreshToken(refreshTokenString);
+        tokenResponse.setTokenType("Bearer");
+        userRepository.updateLastLogin(user.getId());
+        return tokenResponse;
+    }
+
     public void deleteAll(String uuid){
         UUID userId = UUID.fromString(uuid);
         authRepository.revokeByUserId(userId);

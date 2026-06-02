@@ -13,6 +13,19 @@ import java.sql.*;
 public class UserRepository {
     private static final Logger LOG = LoggerFactory.getLogger(UserRepository.class);
 
+    /**
+     * Sentinel stored in {@code password_hash} for accounts created via an
+     * external identity provider (Google). It is intentionally NOT a valid
+     * bcrypt hash (real hashes start with {@code $2}), so:
+     *   - {@link PasswordUtil#verify} can never match it (favre-bcrypt returns
+     *     false for a malformed hash rather than throwing), and
+     *   - {@code AuthService.login} can detect it and tell the user to sign in
+     *     with Google instead of returning a confusing "invalid password".
+     * A later forgot-password reset simply overwrites it with a real hash,
+     * upgrading the account to dual (Google + password) login.
+     */
+    public static final String OAUTH_PASSWORD_SENTINEL = "oauth:google";
+
     public User create(User user) {
         LOG.info("inside user repo");
         String sql = "insert into users (email,password_hash,first_name,last_name,status,is_admin,user_id) values (?,?,?,?,?,?,?)";
@@ -35,6 +48,40 @@ public class UserRepository {
             LOG.error("unhandled exception at create user iam  ", e);
         }
 
+        return user;
+    }
+
+    /**
+     * Create a passwordless account for an external identity provider (Google).
+     * Stores the OAuth sentinel verbatim in {@code password_hash} (no bcrypt)
+     * and marks the email as verified, since Google has already proven it.
+     * Returns null on failure (e.g. a race where the email now exists).
+     */
+    public User createOAuthUser(User user) {
+        String sql = "insert into users (email,password_hash,first_name,last_name,status,is_admin,user_id,email_verified) "
+                + "values (?,?,?,?,?,?,?,?)";
+        UUID newid = UUID.randomUUID();
+        try (Connection connection = DBConfig.getConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, user.getEmail());
+            ps.setString(2, OAUTH_PASSWORD_SENTINEL); // literal sentinel, NOT hashed
+            ps.setString(3, user.getFirstName());
+            ps.setString(4, user.getLastName());
+            ps.setString(5, UserStatus.ACTIVE.name());
+            ps.setBoolean(6, false);
+            ps.setObject(7, newid);
+            ps.setBoolean(8, true); // Google already verified the email
+            ps.executeUpdate();
+            user.setId(newid);
+            user.setStatus(UserStatus.ACTIVE);
+            user.setEmailVerified(true);
+        } catch (SQLException e) {
+            LOG.error("Sql exception at createOAuthUser iam  ", e);
+            return null;
+        } catch (Exception e) {
+            LOG.error("unhandled exception at createOAuthUser iam  ", e);
+            return null;
+        }
         return user;
     }
 
