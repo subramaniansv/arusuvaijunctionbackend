@@ -21,6 +21,7 @@ import com.ecommerce.app.module.health.PingController;
 import com.ecommerce.app.module.iam.controllers.AuthController;
 import com.ecommerce.app.module.iam.controllers.EmailVerificationController;
 import com.ecommerce.app.module.iam.controllers.MeController;
+import com.ecommerce.app.module.iam.controllers.PasswordResetController;
 import com.ecommerce.app.module.iam.controllers.PermissionContoller;
 import com.ecommerce.app.module.iam.controllers.RoleController;
 import com.ecommerce.app.module.iam.controllers.RoleMappingController;
@@ -231,6 +232,7 @@ public final class Main {
         // Auth & identity
         mount(ctx, new AuthController(), "/auth");
         mount(ctx, new EmailVerificationController(), "/api/email-verify", "/api/email-verify/resend");
+        mount(ctx, new PasswordResetController(), "/api/password-reset", "/api/password-reset/confirm");
         mount(ctx, new MeController(), "/api/me");
         mount(ctx, new UserContoller(), "/api/user");
         mount(ctx, new RoleController(), "/api/role");
