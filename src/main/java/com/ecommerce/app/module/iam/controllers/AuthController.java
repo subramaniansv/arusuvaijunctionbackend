@@ -64,8 +64,13 @@ public class AuthController extends HttpServlet {
                 SendResponseUtil.sendResponse(
                         new ApiResponse(true, "user registered", tokenResponse, 200), response);
             } catch (Exception e) {
+                // Surface the actual reason in `message` so the client can show
+                // it directly (e.g. "user not registered (email may already
+                // exist)") instead of a generic string.
+                String reason = (e.getMessage() == null || e.getMessage().isBlank())
+                        ? "user not registered" : e.getMessage();
                 SendResponseUtil.sendResponse(
-                        new ApiResponse(false, "user not registered", e.getMessage(), 400), response);
+                        new ApiResponse(false, reason, null, 400), response);
             }
         } else {
             try {
@@ -74,8 +79,12 @@ public class AuthController extends HttpServlet {
                         new ApiResponse(true, "user logged in", tokenResponse, 200), response);
             } catch (Exception e) {
                 // 401 is the correct status for invalid/missing credentials.
+                // Put the real reason in `message` (e.g. "invalid credentials",
+                // "user not available", "user status is SUSPENDED").
+                String reason = (e.getMessage() == null || e.getMessage().isBlank())
+                        ? "user not logged in" : e.getMessage();
                 SendResponseUtil.sendResponse(
-                        new ApiResponse(false, "user not logged in", e.getMessage(), 401), response);
+                        new ApiResponse(false, reason, null, 401), response);
             }
         }
     }

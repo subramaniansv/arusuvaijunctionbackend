@@ -156,6 +156,27 @@ public class UserRepository {
         return false;
     }
 
+    /**
+     * Forgot-password reset: overwrite the password hash WITHOUT verifying an
+     * old password. Identity is proven by possession of a valid, single-use
+     * reset token (verified by the caller before this is invoked), so there is
+     * no old password to check.
+     */
+    public boolean resetPassword(UUID userId, String newPassword) {
+        String sql = "update users set password_hash = ? where user_id = ?";
+        try (Connection connection = DBConfig.getConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, PasswordUtil.hash(newPassword));
+            ps.setObject(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOG.error("Sql exception at resetPassword iam  ", e);
+        } catch (Exception e) {
+            LOG.error("unhandled exception at resetPassword iam  ", e);
+        }
+        return false;
+    }
+
     public boolean updateUserStatus(UUID userId,UserStatus status){
          String sql = "update users set status = ? where user_id =?";
         try (Connection connection = DBConfig.getConnection()) {

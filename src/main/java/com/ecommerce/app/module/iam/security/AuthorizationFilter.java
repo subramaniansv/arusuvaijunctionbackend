@@ -73,6 +73,15 @@ public class AuthorizationFilter implements Filter {
             chain.doFilter(request, response);
             return;
         }
+        // Public forgot-password endpoints - the user has no session because
+        // they can't log in. POST /api/password-reset issues a reset link and
+        // POST /api/password-reset/confirm consumes the single-use token.
+        // Identity is proven by possession of the emailed token, not a JWT.
+        if ("POST".equalsIgnoreCase(httpMethod) && path != null
+                && (path.equals("/api/password-reset") || path.equals("/api/password-reset/confirm"))) {
+            chain.doFilter(request, response);
+            return;
+        }
         // Public shipping availability & rate check. Customers need to check
         // serviceability/pricing before checkout (no login required).
         // Track action still requires auth (handled below).

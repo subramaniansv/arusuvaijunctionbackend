@@ -40,6 +40,8 @@ import com.ecommerce.app.module.search.ProductSearchIndexer;
 import com.ecommerce.app.module.shipping.ShippingController;
 import com.ecommerce.app.module.shipping.AdminShippingController;
 import com.ecommerce.app.security.GlobalExceptionFilter;
+import com.ecommerce.app.security.SecurityHeadersFilter;
+import com.ecommerce.app.security.CsrfGuardFilter;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServlet;
@@ -53,9 +55,14 @@ import jakarta.servlet.http.HttpServlet;
  * <ul>
  *   <li>{@code PORT}                 — HTTP port (default 8080)</li>
  *   <li>{@code CONTEXT_PATH}         — webapp context path (default "/arusuvai")</li>
- *   <li>{@code CORS_ALLOWED_ORIGINS} — comma-separated list, or "*" (default "*")</li>
+ *   <li>{@code CORS_ALLOWED_ORIGINS} — comma-separated list, or "*". When unset,
+ *       a safe default is derived from APP_HOME_URL/APP_BASE_URL + localhost dev
+ *       origins (no longer "*").</li>
  *   <li>{@code CORS_ALLOW_CREDENTIALS} — "true"/"false" (default "false";
- *       if true, you must list explicit origins, not "*")</li>
+ *       forced off when origins is "*", as required by the CORS spec)</li>
+ *   <li>{@code ENABLE_HSTS}           — "true"/"false" (default "false"). Emits
+ *       Strict-Transport-Security on HTTPS requests when true.</li>
+ *   <li>{@code CONTENT_SECURITY_POLICY} — override the default API CSP.</li>
  * </ul>
  *
  * <p>Run with: {@code java -jar target/ecommerce.jar}</p>
@@ -138,21 +145,86 @@ public final class Main {
     /**
      * Filter chain order (top = runs first):
      *   1. CORS              — answers OPTIONS preflight, adds Access-Control-* headers
-     *   2. GlobalException   — turns uncaught throwables into JSON 500 responses
-     *   3. Authorization     — JWT bearer-token check + @RequiresRole / @RequiresPermission
+     *   2. SecurityHeaders   — stamps hardening headers (nosniff, frame-deny, CSP, HSTS…)
+     *   3. GlobalException   — turns uncaught throwables into JSON 500 responses
+     *   4. CsrfGuard         — rejects unsafe methods from disallowed browser origins
+     *   5. Authorization     — JWT bearer-token check + @RequiresRole / @RequiresPermission
      */
     private static void registerFilters(Context ctx) {
+        // Single source of truth for which web origins may talk to this API.
+        // Shared by both the CORS layer (response headers) and the CSRF guard
+        // (request-time origin enforcement) so they can never drift apart.
+        String allowedOrigins = corsAllowedOrigins();
+        boolean allowCredentials = Boolean.parseBoolean(
+                envOrDefault("CORS_ALLOW_CREDENTIALS", "false"));
+
+        if ("*".equals(allowedOrigins.trim())) {
+            LOG.warn("CORS_ALLOWED_ORIGINS is '*': every site can call this API. "
+                    + "Set an explicit comma-separated allowlist in production.");
+            // A wildcard origin can never be combined with credentials per the
+            // CORS spec; force it off so the CorsFilter doesn't fail closed.
+            allowCredentials = false;
+        }
+
         addFilter(ctx, "corsFilter", new CorsFilter(), "/*",
-                "cors.allowed.origins", envOrDefault("CORS_ALLOWED_ORIGINS", "*"),
+                "cors.allowed.origins", allowedOrigins,
                 "cors.allowed.methods", "GET,POST,PUT,DELETE,PATCH,HEAD,OPTIONS",
                 "cors.allowed.headers",
                 "Content-Type,Authorization,X-Requested-With,Accept,Origin,Cache-Control",
                 "cors.exposed.headers", "Authorization,Location",
-                "cors.support.credentials", envOrDefault("CORS_ALLOW_CREDENTIALS", "false"),
+                "cors.support.credentials", String.valueOf(allowCredentials),
                 "cors.preflight.maxage", "1800");
 
+        addFilter(ctx, "securityHeadersFilter", new SecurityHeadersFilter(), "/*",
+                "security.hsts", envOrDefault("ENABLE_HSTS", "false"),
+                "security.csp", envOrDefault("CONTENT_SECURITY_POLICY",
+                        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"));
+
         addFilter(ctx, "globalExceptionFilter", new GlobalExceptionFilter(), "/*");
+
+        addFilter(ctx, "csrfGuardFilter", new CsrfGuardFilter(), "/*",
+                "csrf.allowed.origins", allowedOrigins);
+
         addFilter(ctx, "authorizationFilter", new AuthorizationFilter(), "/*");
+    }
+
+    /**
+     * Resolve the CORS / CSRF origin allowlist. Honours {@code CORS_ALLOWED_ORIGINS}
+     * when set; otherwise derives a safe default from the configured app URLs
+     * plus the usual local dev origins, instead of defaulting to {@code *}.
+     */
+    private static String corsAllowedOrigins() {
+        String configured = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (configured != null && !configured.isBlank()) {
+            return configured.trim();
+        }
+        java.util.LinkedHashSet<String> origins = new java.util.LinkedHashSet<>();
+        addOrigin(origins, com.ecommerce.app.module.iam.config.ENVConfig.get("APP_HOME_URL"));
+        addOrigin(origins, com.ecommerce.app.module.iam.config.ENVConfig.get("APP_BASE_URL"));
+        origins.add("http://localhost:5173");
+        origins.add("http://localhost:3000");
+        return String.join(",", origins);
+    }
+
+    /** Reduce a full URL to its scheme://host[:port] origin and add it to the set. */
+    private static void addOrigin(java.util.Set<String> set, String url) {
+        if (url == null || url.isBlank()) {
+            return;
+        }
+        try {
+            java.net.URI u = java.net.URI.create(url.trim());
+            if (u.getScheme() == null || u.getHost() == null) {
+                return;
+            }
+            StringBuilder sb = new StringBuilder()
+                    .append(u.getScheme()).append("://").append(u.getHost());
+            if (u.getPort() != -1) {
+                sb.append(':').append(u.getPort());
+            }
+            set.add(sb.toString());
+        } catch (IllegalArgumentException ignored) {
+            // Not a parseable URL -> skip.
+        }
     }
 
     private static void registerServlets(Context ctx) {

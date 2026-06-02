@@ -89,14 +89,15 @@ public class AuthService {
     public TokenResponse login(User user,RefreshToken refreshToken) throws RuntimeException{
        User userDB = userRepository.getUserWithPassword(user.getEmail());
       if(userDB == null || userDB.getId() == null){
-          throw new RuntimeException("user not available");
+          // Privacy-safe: don't reveal whether the email exists.
+          throw new RuntimeException("invalid email or password");
       }
       if(!userDB.getStatus().equals(UserStatus.ACTIVE)){
         throw new RuntimeException("user status is "+userDB.getStatus().name());
       }
       boolean isPasswordVerified =  PasswordUtil.verify(user.getPasswordHash(), userDB.getPasswordHash());
       if(!isPasswordVerified){
-        throw new RuntimeException("invalid credentials");
+        throw new RuntimeException("invalid email or password");
       }
        List<Role> roles = mapperRepository.getRolesAndPermissionsByUserId(userDB.getId());
          TokenResponse tokenResponse = new TokenResponse();
