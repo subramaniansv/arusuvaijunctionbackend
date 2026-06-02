@@ -15,6 +15,11 @@ public class User{
     private UserStatus status;
     private boolean isAdmin;
     private boolean emailVerified;
+    // Transient, output-only: true when the account has a real (bcrypt)
+    // password set. False for Google-only accounts (sentinel hash), so the
+    // UI can hide the "change password" form. Never persisted/read from input.
+    @JsonProperty(access = Access.READ_ONLY)
+    private boolean hasPassword;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime lastLogin;
@@ -65,6 +70,12 @@ public class User{
     }
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
+    }
+    public boolean isHasPassword() {
+        return hasPassword;
+    }
+    public void setHasPassword(boolean hasPassword) {
+        this.hasPassword = hasPassword;
     }
     public LocalDateTime getCreatedAt() {
         return createdAt;

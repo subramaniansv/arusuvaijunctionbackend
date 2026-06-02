@@ -37,6 +37,13 @@ public class UserService {
         }
         User user = repository.getUser(userId);
         if (user != null) {
+            // Compute hasPassword BEFORE stripping the hash so the UI knows
+            // whether to show the change-password form. Google-only accounts
+            // carry the OAuth sentinel, not a real bcrypt hash.
+            String hash = user.getPasswordHash();
+            boolean hasPw = hash != null && !hash.isBlank()
+                    && !UserRepository.OAUTH_PASSWORD_SENTINEL.equals(hash);
+            user.setHasPassword(hasPw);
             user.setPasswordHash(null);
         }
         return user;
