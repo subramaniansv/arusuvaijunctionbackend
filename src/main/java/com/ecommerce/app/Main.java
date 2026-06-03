@@ -27,6 +27,7 @@ import com.ecommerce.app.module.iam.controllers.RoleController;
 import com.ecommerce.app.module.iam.controllers.RoleMappingController;
 import com.ecommerce.app.module.iam.controllers.UserContoller;
 import com.ecommerce.app.module.iam.security.AuthorizationFilter;
+import com.ecommerce.app.module.order.InvoiceController;
 import com.ecommerce.app.module.order.OrderController;
 import com.ecommerce.app.module.payment.PaymentController;
 import com.ecommerce.app.module.product.CategoryController;
@@ -248,6 +249,7 @@ public final class Main {
         mount(ctx, new CartController(), "/api/cart");
         mount(ctx, new WishlistController(), "/api/wishlist");
         mount(ctx, new OrderController(), "/api/order");
+        mount(ctx, new InvoiceController(), "/api/order/invoice");
         mount(ctx, new PaymentController(), "/api/payment");
         mount(ctx, new ReviewController(), "/api/review");
         mount(ctx, new UserAddressController(), "/api/address");
