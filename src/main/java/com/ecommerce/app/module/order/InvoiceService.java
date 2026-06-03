@@ -44,6 +44,7 @@ public class InvoiceService {
     // Seller (company) details - authoritative server-side constants.
     // ------------------------------------------------------------------
     private static final String COMPANY_NAME    = "Arusuvai Junction";
+    private static final String COMPANY_OWNER   = "S. Vallinayagam";
     private static final String COMPANY_ADDR_1  = "6/A, Matha Middle Street";
     private static final String COMPANY_ADDR_2  = "Tirunelveli Town - 627006";
     private static final String COMPANY_PHONE   = "9894014063 / 9843471463";
@@ -111,6 +112,7 @@ public class InvoiceService {
         } else {
             left.addElement(new Paragraph(COMPANY_NAME, font(16, Font.BOLD, BRAND)));
         }
+        left.addElement(new Paragraph(COMPANY_OWNER, font(10.5f, Font.BOLD, INK)));
         left.addElement(new Paragraph(COMPANY_ADDR_1, font(9.5f, Font.NORMAL, MUTED)));
         left.addElement(new Paragraph(COMPANY_ADDR_2, font(9.5f, Font.NORMAL, MUTED)));
         left.addElement(new Paragraph("Ph: " + COMPANY_PHONE, font(9.5f, Font.NORMAL, MUTED)));
@@ -231,15 +233,49 @@ public class InvoiceService {
     // ------------------------------------------------------------------
     // Small helpers
     // ------------------------------------------------------------------
+
+    /**
+     * The logo never changes, so we parse the classpath PNG exactly once and
+     * keep the decoded master {@link Image} in a static cache. Re-reading and
+     * re-decoding a ~286 KB PNG on every invoice request was the dominant
+     * per-request cost. {@code Image.getInstance(master)} returns a cheap copy
+     * that shares the underlying raw image data but carries its own scaling
+     * state, so each request can {@code scaleToFit(..)} independently without
+     * mutating the shared master (thread-safe).
+     */
+    private static volatile Image cachedLogo;
+    private static volatile boolean logoMissing;
+
     private Image loadLogo() {
-        try (InputStream in = InvoiceService.class.getResourceAsStream(LOGO_RESOURCE)) {
-            if (in == null) {
-                LOG.warn("invoice logo resource {} not found on classpath", LOGO_RESOURCE);
-                return null;
+        Image master = cachedLogo;
+        if (master == null && !logoMissing) {
+            synchronized (InvoiceService.class) {
+                master = cachedLogo;
+                if (master == null && !logoMissing) {
+                    try (InputStream in = InvoiceService.class.getResourceAsStream(LOGO_RESOURCE)) {
+                        if (in == null) {
+                            LOG.warn("invoice logo resource {} not found on classpath", LOGO_RESOURCE);
+                            logoMissing = true;
+                            return null;
+                        }
+                        master = Image.getInstance(in.readAllBytes());
+                        cachedLogo = master;
+                    } catch (IOException | RuntimeException e) {
+                        LOG.warn("could not load invoice logo: {}", e.getMessage());
+                        logoMissing = true;
+                        return null;
+                    }
+                }
             }
-            return Image.getInstance(in.readAllBytes());
-        } catch (IOException | RuntimeException e) {
-            LOG.warn("could not load invoice logo: {}", e.getMessage());
+        }
+        if (master == null) {
+            return null;
+        }
+        try {
+            // Cheap copy: shares raw image bytes, independent scaling state.
+            return Image.getInstance(master);
+        } catch (RuntimeException e) {
+            LOG.warn("could not copy cached invoice logo: {}", e.getMessage());
             return null;
         }
     }
