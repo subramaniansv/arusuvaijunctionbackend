@@ -17,8 +17,9 @@ import com.ecommerce.app.module.iam.security.AuthUser;
 import com.ecommerce.app.module.iam.models.User;
 import com.ecommerce.app.module.iam.repository.EmailVerificationRepository;
 import com.ecommerce.app.module.iam.repository.UserRepository;
-import com.ecommerce.app.module.mail.MailService;
-import com.ecommerce.app.module.mail.MailTemplates;
+// Email transport DISABLED for now — imports kept commented for easy restore.
+// import com.ecommerce.app.module.mail.MailService;
+// import com.ecommerce.app.module.mail.MailTemplates;
 import com.ecommerce.app.module.product.*;
 import com.ecommerce.app.module.payment.ShippingCalculator;
 import com.ecommerce.app.module.shipping.ShippingService;
@@ -118,7 +119,24 @@ public class OrderService {
             order.setStatus(OrderStatus.PENDING);
             orderRepository.updateStatus(connection, order.getStatus(), order.getOrderId());
             connection.commit();
-            return orderRepository.findByOrderID(order.getUserId(), order.getOrderId());
+            Order saved = orderRepository.findByOrderID(order.getUserId(), order.getOrderId());
+
+            // Fire-and-forget web-push: tell the user's devices the order is in.
+            // Safe even if VAPID keys are unset (PushService no-ops) and never
+            // blocks the checkout response.
+            if (saved != null && saved.getOrderId() != null) {
+                final java.util.UUID puid = order.getUserId();
+                final java.util.UUID poid = saved.getOrderId();
+                final String ref = saved.getOrderId().toString().substring(0, 8).toUpperCase();
+                OrderAsync.run("order.placedPush", () ->
+                        com.ecommerce.app.module.push.PushService.get().sendToUser(
+                                puid,
+                                "Order placed \u2705",
+                                "We received your order #" + ref + ". We'll keep you posted.",
+                                "/orders/" + poid));
+            }
+
+            return saved;
 
         } catch (RuntimeException e) {
             safeRollback(connection);
@@ -207,11 +225,40 @@ public class OrderService {
             }
 
             connection.commit();
+
+            // Affiliate points lifecycle on status transitions:
+            //  - CANCELLED / REFUNDED  -> claw back any awarded referral points.
+            //  - CONFIRMED / DELIVERED on a legacy (non-Razorpay) PENDING order
+            //    -> treat as the "paid" moment and award referral points. This
+            //    covers the COD / WhatsApp checkout path that never hits
+            //    PaymentService. Idempotent per order, so double-firing is safe.
+            final java.util.UUID affOrderId = orderId;
+            final OrderStatus affStatus = status;
+            OrderAsync.run("affiliate.statusHook", () -> {
+                var affiliate = new com.ecommerce.app.module.affiliate.AffiliateService();
+                if (affStatus == OrderStatus.CANCELLED || affStatus == OrderStatus.REFUNDED) {
+                    affiliate.reverseForOrder(affOrderId);
+                } else if (affStatus == OrderStatus.CONFIRMED || affStatus == OrderStatus.DELIVERED
+                           || affStatus == OrderStatus.PAID) {
+                    Order ord = orderRepository.findByOrderIDAdmin(affOrderId);
+                    if (ord != null && ord.getUserId() != null) {
+                        affiliate.awardForOrder(ord.getUserId(), affOrderId, ord.getTotalAmount());
+                    }
+                }
+            });
+
             // Fire-and-forget customer notification of the status change.
             // PENDING is the initial state set on checkout (already covered
             // by orderPlaced) so we skip it here to avoid duplicate noise.
             if (status != OrderStatus.PENDING) {
-                sendOrderStatusEmail(orderId, status);
+                // Email status notification: DISABLED for now (commented out).
+                // sendOrderStatusEmail(orderId, status);
+                // Push is already async internally (PushService uses its own
+                // thread pool), but wrap in the order-hook executor too so the
+                // repository lookup it does never touches the request thread.
+                final java.util.UUID oid = orderId;
+                final OrderStatus st = status;
+                OrderAsync.run("order.statusPush", () -> sendOrderStatusPush(oid, st));
             }
             return true;
         } catch (RuntimeException e) {
@@ -230,21 +277,53 @@ public class OrderService {
      * Fire-and-forget email when an admin moves an order through its status
      * lifecycle (confirmed / shipped / delivered / cancelled). Never throws.
      */
+    // Email DISABLED for now. Kept commented for easy restore once mail is
+    // re-enabled. Uncomment the body AND the MailService/MailTemplates imports.
+    @SuppressWarnings("unused")
     private void sendOrderStatusEmail(UUID orderId, OrderStatus status) {
+        // try {
+        //     Order persisted = orderRepository.findByOrderIDAdmin(orderId);
+        //     if (persisted == null || persisted.getUserId() == null) return;
+        //     User user = userRepository.getUser(persisted.getUserId());
+        //     if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
+        //     String orderRef = persisted.getOrderId() != null
+        //             ? persisted.getOrderId().toString().substring(0, 8).toUpperCase()
+        //             : "";
+        //     MailService.get().send(
+        //             user.getEmail(),
+        //             "Arusuvai order #" + orderRef + " - " + status.name(),
+        //             MailTemplates.orderStatusUpdate(user.getFirstName(), persisted, status.name()));
+        // } catch (Exception e) {
+        //     LOG.warn("could not send order status email: {}", e.getMessage());
+        // }
+    }
+
+    /**
+     * Fire-and-forget web-push on an order status change. Mirrors
+     * sendOrderStatusEmail but delivers to the user's subscribed devices even
+     * when the website/browser is closed. Never throws.
+     */
+    private void sendOrderStatusPush(UUID orderId, OrderStatus status) {
         try {
             Order persisted = orderRepository.findByOrderIDAdmin(orderId);
             if (persisted == null || persisted.getUserId() == null) return;
-            User user = userRepository.getUser(persisted.getUserId());
-            if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
-            String orderRef = persisted.getOrderId() != null
+            String ref = persisted.getOrderId() != null
                     ? persisted.getOrderId().toString().substring(0, 8).toUpperCase()
                     : "";
-            MailService.get().send(
-                    user.getEmail(),
-                    "Arusuvai order #" + orderRef + " - " + status.name(),
-                    MailTemplates.orderStatusUpdate(user.getFirstName(), persisted, status.name()));
+            String title;
+            String body;
+            switch (status) {
+                case CONFIRMED -> { title = "Order confirmed \u2705"; body = "Your order #" + ref + " is confirmed."; }
+                case SHIPPED   -> { title = "On the way \uD83D\uDE9A"; body = "Order #" + ref + " has shipped."; }
+                case DELIVERED -> { title = "Delivered \uD83C\uDF89"; body = "Order #" + ref + " was delivered. Enjoy!"; }
+                case CANCELLED -> { title = "Order cancelled"; body = "Order #" + ref + " was cancelled."; }
+                case REFUNDED  -> { title = "Refund processed"; body = "Refund for order #" + ref + " is on its way."; }
+                default        -> { title = "Order update"; body = "Order #" + ref + " is now " + status.name() + "."; }
+            }
+            com.ecommerce.app.module.push.PushService.get().sendToUser(
+                    persisted.getUserId(), title, body, "/orders/" + persisted.getOrderId());
         } catch (Exception e) {
-            LOG.warn("could not send order status email: {}", e.getMessage());
+            LOG.warn("could not send order status push: {}", e.getMessage());
         }
     }
 
@@ -375,8 +454,21 @@ public class OrderService {
             connection.commit();
             Order persisted = orderRepository.findByOrderID(userId, order.getOrderId());
             if (persisted != null) {
+                // WhatsApp link/message must be on the response body, so build
+                // it synchronously (pure string work, no I/O).
                 decorateWithWhatsApp(persisted);
-                sendOrderConfirmation(userId, persisted);
+
+                // Email confirmation: DISABLED for now (commented out).
+                // sendOrderConfirmation(userId, persisted);
+
+                // Loyalty visit recording is best-effort and must not block the
+                // checkout response -> run it off the request thread.
+                final UUID uid = userId;
+                final java.util.UUID oid = persisted.getOrderId();
+                final double amt = persisted.getTotalAmount();
+                OrderAsync.run("loyalty.recordOrderVisit(cart)", () ->
+                        new com.ecommerce.app.module.loyalty.LoyaltyService()
+                                .recordOrderVisit(uid, oid, amt));
             }
             return persisted;
         } catch (RuntimeException e) {
@@ -505,8 +597,21 @@ public class OrderService {
             connection.commit();
             Order persisted = orderRepository.findByOrderID(userId, order.getOrderId());
             if (persisted != null) {
+                // WhatsApp link/message must be on the response body, so build
+                // it synchronously (pure string work, no I/O).
                 decorateWithWhatsApp(persisted);
-                sendOrderConfirmation(userId, persisted);
+
+                // Email confirmation: DISABLED for now (commented out).
+                // sendOrderConfirmation(userId, persisted);
+
+                // Loyalty visit recording is best-effort and must not block the
+                // checkout response -> run it off the request thread.
+                final UUID uid = userId;
+                final java.util.UUID oid = persisted.getOrderId();
+                final double amt = persisted.getTotalAmount();
+                OrderAsync.run("loyalty.recordOrderVisit(buyNow)", () ->
+                        new com.ecommerce.app.module.loyalty.LoyaltyService()
+                                .recordOrderVisit(uid, oid, amt));
             }
             return persisted;
         } catch (RuntimeException e) {
@@ -595,21 +700,24 @@ public class OrderService {
      * from the IAM tables (we only have the userId on the Order). Never
      * throws - mail failures must not break checkout.
      */
+    // Email DISABLED for now. Kept commented for easy restore once mail is
+    // re-enabled. Uncomment the body AND the MailService/MailTemplates imports.
+    @SuppressWarnings("unused")
     private void sendOrderConfirmation(java.util.UUID userId, Order order) {
-        try {
-            if (userId == null || order == null) return;
-            User user = userRepository.getUser(userId);
-            if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
-            String orderRef = order.getOrderId() != null
-                    ? order.getOrderId().toString().substring(0, 8).toUpperCase()
-                    : "";
-            MailService.get().send(
-                    user.getEmail(),
-                    "Your Arusuvai order #" + orderRef + " is confirmed",
-                    MailTemplates.orderPlaced(user.getFirstName(), order));
-        } catch (Exception e) {
-            LOG.warn("could not send order confirmation email: {}", e.getMessage());
-        }
+        // try {
+        //     if (userId == null || order == null) return;
+        //     User user = userRepository.getUser(userId);
+        //     if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
+        //     String orderRef = order.getOrderId() != null
+        //             ? order.getOrderId().toString().substring(0, 8).toUpperCase()
+        //             : "";
+        //     MailService.get().send(
+        //             user.getEmail(),
+        //             "Your Arusuvai order #" + orderRef + " is confirmed",
+        //             MailTemplates.orderPlaced(user.getFirstName(), order));
+        // } catch (Exception e) {
+        //     LOG.warn("could not send order confirmation email: {}", e.getMessage());
+        // }
     }
 
     private String buildWhatsAppMessage(Order order) {

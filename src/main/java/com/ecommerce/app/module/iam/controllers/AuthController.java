@@ -12,6 +12,9 @@ import com.ecommerce.app.module.iam.security.AuthContext;
 import com.ecommerce.app.module.iam.security.AuthUser;
 import com.ecommerce.app.module.iam.services.AuthService;
 import com.ecommerce.app.module.iam.util.SendResponseUtil;
+import com.ecommerce.app.module.affiliate.AffiliateController;
+import com.ecommerce.app.module.affiliate.AffiliateService;
+import com.ecommerce.app.module.iam.util.JwtUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -20,6 +23,8 @@ import java.io.IOException;
 @WebServlet("/auth")
 public class AuthController extends HttpServlet {
     AuthService service = new AuthService();
+    private final AffiliateService affiliateService = new AffiliateService();
+    private final JwtUtil jwtUtil = new JwtUtil();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -60,6 +65,7 @@ public class AuthController extends HttpServlet {
             refreshToken.setUserAgent(request.getHeader("User-Agent"));
             try {
                 TokenResponse tokenResponse = service.loginWithGoogle(credential, refreshToken);
+                bindReferralFromCookie(request, response, tokenResponse);
                 SendResponseUtil.sendResponse(
                         new ApiResponse(true, "user logged in", tokenResponse, 200), response);
             } catch (Exception e) {
@@ -86,6 +92,9 @@ public class AuthController extends HttpServlet {
         if (!isLogin) {
             try {
                 TokenResponse tokenResponse = service.register(user, refreshToken);
+                // Affiliate: bind the aj_ref cookie's referral code to this new
+                // user so the attribution survives cookie loss. Best-effort.
+                bindReferralFromCookie(request, response, tokenResponse);
                 SendResponseUtil.sendResponse(
                         new ApiResponse(true, "user registered", tokenResponse, 200), response);
             } catch (Exception e) {
@@ -100,6 +109,9 @@ public class AuthController extends HttpServlet {
         } else {
             try {
                 TokenResponse tokenResponse = service.login(user, refreshToken);
+                // Affiliate: late binding — if this login carries a ref cookie and
+                // the user has no attribution yet, bind it now (first-touch).
+                bindReferralFromCookie(request, response, tokenResponse);
                 SendResponseUtil.sendResponse(
                         new ApiResponse(true, "user logged in", tokenResponse, 200), response);
             } catch (Exception e) {
@@ -150,6 +162,35 @@ public class AuthController extends HttpServlet {
         } catch (Exception e) {
             SendResponseUtil.sendResponse(
                     new ApiResponse(false, e.getMessage(), null, 400), response);
+        }
+    }
+
+    /**
+     * Read the aj_ref cookie ("CODE|epochMillis"), bind the referral to the
+     * just-authenticated user, and clear the cookie once bound. The user id is
+     * taken from the freshly-issued access token (never trusted from the client).
+     * Never throws — referral tracking must not break auth.
+     */
+    private void bindReferralFromCookie(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        TokenResponse tokenResponse) {
+        try {
+            String raw = AffiliateController.readRefCookie(request);
+            if (raw == null || raw.isBlank()) return;
+            String code = raw;
+            long firstClick = 0L;
+            int bar = raw.indexOf('|');
+            if (bar > 0) {
+                code = raw.substring(0, bar);
+                try { firstClick = Long.parseLong(raw.substring(bar + 1)); } catch (NumberFormatException ignore) { }
+            }
+            java.util.UUID userId = jwtUtil.extractUserId(tokenResponse.getAccessToken());
+            boolean bound = affiliateService.bindReferral(userId, code, firstClick);
+            // Clear the cookie whether or not a new binding was created, so a
+            // consumed / rejected code doesn't linger for 15 days.
+            response.addHeader("Set-Cookie", AffiliateController.clearRefCookieHeader(request));
+        } catch (Exception e) {
+            // swallow — auth already succeeded
         }
     }
 
