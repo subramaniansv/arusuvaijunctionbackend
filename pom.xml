@@ -17,6 +17,10 @@
 
     <properties>
         <tomcat.version>10.1.41</tomcat.version>
+        <!-- Compile every source file as UTF-8 so Tamil / non-Latin string
+             literals and resources survive the build unchanged. -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>

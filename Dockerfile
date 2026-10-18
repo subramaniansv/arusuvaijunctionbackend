@@ -22,7 +22,7 @@ USER app
 # Render injects $PORT at runtime; the app reads it via System.getenv("PORT").
 ENV PORT=8080 \
     CONTEXT_PATH=/arusuvai \
-    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+UseG1GC"
+    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+UseG1GC -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8"
 EXPOSE 8080
 
 # Render's health check probes / by default — point it at /arusuvai/health
