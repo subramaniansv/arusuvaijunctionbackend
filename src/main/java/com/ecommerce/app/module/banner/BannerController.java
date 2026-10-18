@@ -207,13 +207,21 @@ public class BannerController extends HttpServlet {
         try {
             // POST /api/banner/admin/messages — PUBLIC: no login required.
             if ("/admin/messages".equals(path)) {
-                FestivalMessage msg = om.readValue(req.getReader(), FestivalMessage.class);
+                FestivalMessage msg = om.readValue(req.getInputStream(), FestivalMessage.class);
                 if (blank(msg.getMessageText())) {
                     badRequest(res, "messageText is required"); return;
                 }
                 if (msg.getFestivalId() == null) {
                     badRequest(res, "festivalId is required"); return;
                 }
+                // Normalise + bound the visitor-supplied text. This mirrors the
+                // UI limits (MSG_MAX=210, name<=60), keeps the message_text TEXT
+                // column from being abused, and never truncates mid-codepoint so
+                // Tamil grapheme clusters stay intact. The content is stored and
+                // later rendered as data (React escapes it) — no HTML injection.
+                msg.setMessageText(clampUtf8(msg.getMessageText(), 1000));
+                msg.setRecipientName(clampUtf8(msg.getRecipientName(), 120));
+                msg.setSenderName(clampUtf8(msg.getSenderName(), 120));
                 UUID callerId = null;
                 try {
                     AuthUser caller = AuthContext.get();
@@ -228,7 +236,7 @@ public class BannerController extends HttpServlet {
             // POST /api/banner/admin/festivals — create festival (starts disabled)
             if ("/admin/festivals".equals(path)) {
                 assertAdmin(res);
-                FestivalCategory fc = om.readValue(req.getReader(), FestivalCategory.class);
+                FestivalCategory fc = om.readValue(req.getInputStream(), FestivalCategory.class);
                 if (blank(fc.getName()) || blank(fc.getSlug())) {
                     badRequest(res, "name and slug are required"); return;
                 }
@@ -433,6 +441,22 @@ public class BannerController extends HttpServlet {
 
     private static boolean blank(String s) {
         return s == null || s.isBlank();
+    }
+
+    /**
+     * Trim + cap user-supplied text at a code-point (not char) boundary so
+     * multi-char Unicode graphemes (Tamil vowel signs, emoji) are never cut
+     * in half, which would corrupt the stored UTF-8. Returns null for blank
+     * input. The value is stored/served as data and React escapes it on
+     * render, so there is no HTML/script injection surface.
+     */
+    private static String clampUtf8(String s, int maxCodePoints) {
+        if (s == null) return null;
+        String trimmed = s.strip();
+        if (trimmed.isEmpty()) return null;
+        if (trimmed.codePointCount(0, trimmed.length()) <= maxCodePoints) return trimmed;
+        int end = trimmed.offsetByCodePoints(0, maxCodePoints);
+        return trimmed.substring(0, end);
     }
 
     private static Part findFilePart(HttpServletRequest req) throws IOException, ServletException {

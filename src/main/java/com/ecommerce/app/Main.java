@@ -53,6 +53,7 @@ import com.ecommerce.app.module.affiliate.AdminAffiliateController;
 import com.ecommerce.app.security.GlobalExceptionFilter;
 import com.ecommerce.app.security.SecurityHeadersFilter;
 import com.ecommerce.app.security.CsrfGuardFilter;
+import com.ecommerce.app.security.CharacterEncodingFilter;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServlet;
@@ -191,6 +192,11 @@ public final class Main {
             // CORS spec; force it off so the CorsFilter doesn't fail closed.
             allowCredentials = false;
         }
+
+        // MUST be first: force UTF-8 decoding of every request body BEFORE any
+        // downstream filter/servlet reads parameters or the stream. The servlet
+        // default is ISO-8859-1, which mangles Tamil/Hindi/emoji into mojibake.
+        addFilter(ctx, "0characterEncodingFilter", new CharacterEncodingFilter(), "/*");
 
         addFilter(ctx, "corsFilter", new CorsFilter(), "/*",
                 "cors.allowed.origins", allowedOrigins,
