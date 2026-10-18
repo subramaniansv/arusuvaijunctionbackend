@@ -8,8 +8,9 @@ import com.ecommerce.app.module.cart.CartRepository;
 import com.ecommerce.app.module.iam.models.User;
 import com.ecommerce.app.module.iam.repository.EmailVerificationRepository;
 import com.ecommerce.app.module.iam.repository.UserRepository;
-import com.ecommerce.app.module.mail.MailService;
-import com.ecommerce.app.module.mail.MailTemplates;
+// Email transport DISABLED for now — imports kept commented for easy restore.
+// import com.ecommerce.app.module.mail.MailService;
+// import com.ecommerce.app.module.mail.MailTemplates;
 import com.ecommerce.app.module.order.*;
 import com.ecommerce.app.module.product.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -72,6 +73,8 @@ public class PaymentService {
     private final EmailVerificationRepository emailVerificationRepository = new EmailVerificationRepository();
     private final PaymentTransactionRepository paymentTxnRepository = new PaymentTransactionRepository();
     private final RazorpayClient razorpay = RazorpayClient.get();
+    private final com.ecommerce.app.module.loyalty.LoyaltyRedemptionService loyaltyRedemptionService =
+            new com.ecommerce.app.module.loyalty.LoyaltyRedemptionService();
 
     /** What the frontend needs to open the Razorpay popup. */
     public static final class InitiationResponse {
@@ -96,7 +99,7 @@ public class PaymentService {
     // ------------------------------------------------------------------
 
     /** Initiate payment for the user's current cart. */
-    public InitiationResponse initiateCartPayment(UUID userId, String shippingAddress, String phone, double shippingFee) {
+    public InitiationResponse initiateCartPayment(UUID userId, String shippingAddress, String phone, double shippingFee, int redeemPoints) {
         validateShipping(shippingAddress, phone);
         requireVerifiedEmail(userId);
 
@@ -180,6 +183,25 @@ public class PaymentService {
             orderRepository.updateShippingFee(connection, computedShipping, order.getOrderId());
             if (computedShipping > 0) total += computedShipping;
 
+            // Loyalty: apply point redemption as a cash discount on the final
+            // payable amount. Points are clamped server-side (balance + order
+            // total) and deducted atomically within THIS transaction so order
+            // and points commit together.
+            int cartPts = loyaltyRedemptionService.clampOnlinePoints(userId, redeemPoints, total);
+            if (cartPts > 0) {
+                var red = loyaltyRedemptionService.applyOnlineRedemption(connection, userId, cartPts, order.getOrderId());
+                if (red != null) {
+                    // Subtract the redemption cash value in BigDecimal so the
+                    // payable amount stays exact to the paisa (no double drift
+                    // for fractional point values). toPaise() rounds once below.
+                    total = BigDecimal.valueOf(total)
+                            .subtract(red.getCashValue())
+                            .max(BigDecimal.ZERO)
+                            .setScale(2, java.math.RoundingMode.HALF_UP)
+                            .doubleValue();
+                }
+            }
+
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PAYMENT_PENDING, order.getOrderId());
 
@@ -218,7 +240,7 @@ public class PaymentService {
     /** Initiate payment for a one-shot Buy-Now (no cart involvement). */
     public InitiationResponse initiateBuyNowPayment(
             UUID userId, UUID productId, UUID variantId, int quantity,
-            String shippingAddress, String phone, double shippingFee) {
+            String shippingAddress, String phone, double shippingFee, int redeemPoints) {
         validateShipping(shippingAddress, phone);
         if (productId == null) throw new RuntimeException("productId is required");
         if (quantity <= 0) throw new RuntimeException("quantity must be positive");
@@ -287,6 +309,21 @@ public class PaymentService {
             }
 
             double total = merchandiseTotal + computedShipping;
+
+            // Loyalty: apply point redemption discount (atomic, same txn).
+            int buyNowPts = loyaltyRedemptionService.clampOnlinePoints(userId, redeemPoints, total);
+            if (buyNowPts > 0) {
+                var red = loyaltyRedemptionService.applyOnlineRedemption(connection, userId, buyNowPts, order.getOrderId());
+                if (red != null) {
+                    // Subtract in BigDecimal to keep the payable exact to the
+                    // paisa (no double drift for fractional point values).
+                    total = BigDecimal.valueOf(total)
+                            .subtract(red.getCashValue())
+                            .max(BigDecimal.ZERO)
+                            .setScale(2, java.math.RoundingMode.HALF_UP)
+                            .doubleValue();
+                }
+            }
 
             orderRepository.updatePrice(connection, total, order.getOrderId());
             orderRepository.updateStatus(connection, OrderStatus.PAYMENT_PENDING, order.getOrderId());
@@ -440,7 +477,25 @@ public class PaymentService {
 
             connection.commit();
             Order persisted = orderRepository.findByOrderID(userId, orderId);
-            if (persisted != null) sendOrderConfirmation(userId, persisted);
+            if (persisted != null) {
+                // Email confirmation: DISABLED for now (commented out).
+                // sendOrderConfirmation(userId, persisted);
+
+                // Post-payment side effects must not block the payment-verify
+                // response -> run them off the request thread.
+                final UUID puid = userId;
+                final UUID poid = orderId;
+                final double ptotal = persisted.getTotalAmount();
+                final Order ppersisted = persisted;
+                com.ecommerce.app.module.order.OrderAsync.run("payment.adminPaidPush",
+                        () -> notifyAdminsOrderPaid(ppersisted));
+                // Affiliate: credit the referrer's loyalty points for this PAID
+                // order (idempotent per order; one reward per referred user;
+                // within the 15-day window). Runs in its own txn, best-effort.
+                com.ecommerce.app.module.order.OrderAsync.run("payment.affiliateAward",
+                        () -> new com.ecommerce.app.module.affiliate.AffiliateService()
+                                .awardForOrder(puid, poid, ptotal));
+            }
             return persisted;
         } catch (RuntimeException e) {
             safeRollback(connection);
@@ -470,6 +525,26 @@ public class PaymentService {
      * Throws on signature failure so the servlet returns 4xx and Razorpay
      * retries the delivery.
      */
+    /**
+     * Fire-and-forget: notify all Admin devices that an order was paid for.
+     * Mirrors the customer push in OrderService but targets staff. Never throws.
+     */
+    private void notifyAdminsOrderPaid(Order order) {
+        try {
+            if (order == null || order.getOrderId() == null) return;
+            String ref = order.getOrderId().toString().substring(0, 8).toUpperCase();
+            String amt = order.getTotalAmount() > 0
+                    ? " (\u20B9" + String.format(java.util.Locale.ROOT, "%.2f", order.getTotalAmount()) + ")"
+                    : "";
+            com.ecommerce.app.module.push.PushService.get().sendToAdmins(
+                    "New paid order \uD83D\uDCB0",
+                    "Order #" + ref + amt + " was paid. Time to process it.",
+                    "/admin/orders");
+        } catch (Exception e) {
+            LOG.warn("admin order-paid push failed (non-fatal): {}", e.getMessage());
+        }
+    }
+
     public void handleWebhook(String rawBody, String signature) {
         if (!razorpay.verifyWebhookSignature(rawBody, signature)) {
             throw new RuntimeException("invalid webhook signature");
@@ -507,6 +582,23 @@ public class PaymentService {
                                     rpPaymentId, "webhook");
                             c.commit();
                             LOG.info("order {} finalized via webhook", txn.getOrderId());
+                            try {
+                                Order paidOrder = orderRepository.findByOrderIDAdmin(txn.getOrderId());
+                                if (paidOrder != null) notifyAdminsOrderPaid(paidOrder);
+                            } catch (Exception ne) {
+                                LOG.warn("admin order-paid push (webhook) failed (non-fatal): {}", ne.getMessage());
+                            }
+                            // Affiliate award (idempotent; no-op if the verify
+                            // endpoint already awarded for this order).
+                            try {
+                                Order ord = orderRepository.findByOrderIDAdmin(txn.getOrderId());
+                                if (ord != null) {
+                                    new com.ecommerce.app.module.affiliate.AffiliateService()
+                                            .awardForOrder(txn.getUserId(), txn.getOrderId(), ord.getTotalAmount());
+                                }
+                            } catch (Exception ae) {
+                                LOG.warn("affiliate award (webhook) failed (non-fatal): {}", ae.getMessage());
+                            }
                         } else {
                             c.commit();
                         }
@@ -552,21 +644,24 @@ public class PaymentService {
         } catch (SQLException ignored) {}
     }
 
+    // Email DISABLED for now. Kept commented for easy restore once mail is
+    // re-enabled. Uncomment the body AND the MailService/MailTemplates imports.
+    @SuppressWarnings("unused")
     private void sendOrderConfirmation(UUID userId, Order order) {
-        try {
-            if (userId == null || order == null) return;
-            User user = userRepository.getUser(userId);
-            if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
-            String orderRef = order.getOrderId() != null
-                    ? order.getOrderId().toString().substring(0, 8).toUpperCase()
-                    : "";
-            MailService.get().send(
-                    user.getEmail(),
-                    "Your Arusuvai order #" + orderRef + " is confirmed",
-                    MailTemplates.orderPlaced(user.getFirstName(), order));
-        } catch (Exception e) {
-            LOG.warn("could not send order confirmation email: {}", e.getMessage());
-        }
+        // try {
+        //     if (userId == null || order == null) return;
+        //     User user = userRepository.getUser(userId);
+        //     if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
+        //     String orderRef = order.getOrderId() != null
+        //             ? order.getOrderId().toString().substring(0, 8).toUpperCase()
+        //             : "";
+        //     MailService.get().send(
+        //             user.getEmail(),
+        //             "Your Arusuvai order #" + orderRef + " is confirmed",
+        //             MailTemplates.orderPlaced(user.getFirstName(), order));
+        // } catch (Exception e) {
+        //     LOG.warn("could not send order confirmation email: {}", e.getMessage());
+        // }
     }
 
     private void requireVerifiedEmail(UUID userId) {

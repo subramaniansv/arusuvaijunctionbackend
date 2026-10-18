@@ -41,6 +41,19 @@ public class AuthorizationFilter implements Filter {
             chain.doFilter(request, response);
             return;
         }
+        // Web Push: the SPA must fetch the VAPID public key BEFORE the user
+        // is asked for notification permission, which can happen while the
+        // page is still anonymous. Only this one read is public; subscribe /
+        // unsubscribe (POST) fall through and require a Bearer token.
+        if ("GET".equalsIgnoreCase(httpMethod) && path != null
+                && path.startsWith("/api/push")) {
+            String pi = request.getPathInfo();
+            if ("/vapidPublicKey".equals(pi)) {
+                chain.doFilter(request, response);
+                return;
+            }
+        }
+
         // Public catalog browsing: GET /api/product (list, single, search,
         // recommendations) is open. Write operations on /api/product still
         // require a Bearer token and the usual role checks.
@@ -58,6 +71,65 @@ public class AuthorizationFilter implements Filter {
         if ("GET".equalsIgnoreCase(httpMethod) && path != null && path.startsWith("/api/review")) {
             chain.doFilter(request, response);
             return;
+        }
+        // Public festival-banner endpoints — no JWT required:
+        //
+        //   GET  /api/banner/festivals                        → active festival list
+        //   GET  /api/banner/festivals/all/images             → ALL active images (home hero)
+        //   GET  /api/banner/festivals/<slug>/images          → images for one festival
+        //   GET  /api/banner/share/<slug>                     → shared message payload (view mode)
+        //
+        //   POST /api/banner/admin/messages                   → PUBLIC: user creates a greeting
+        //        (no login needed — anyone on /festival can generate a shareable link)
+        //
+        // WHY fullPath: The BannerController is mounted on "/api/banner/*".
+        // request.getServletPath() returns only "/api/banner" (the pattern prefix);
+        // the remainder (e.g. "/festivals", "/share/abc") lives in getPathInfo().
+        // We must concatenate both to get the complete path to match against.
+        //
+        // Admin sub-paths (/api/banner/admin/festivals, /api/banner/admin/images, etc.)
+        // are NOT in this whitelist — they fall through to JWT + @RequiresRole below.
+        if (path != null && path.startsWith("/api/banner")) {
+            // Full URI path = servletPath + pathInfo
+            // e.g. servletPath="/api/banner", pathInfo="/festivals/all/images"
+            //   => fullPath = "/api/banner/festivals/all/images"
+            String pathInfo = request.getPathInfo(); // null when no sub-path
+            String fullPath = (pathInfo != null) ? path + pathInfo : path;
+            String sub = fullPath.substring("/api/banner".length()); // e.g. "/festivals"
+
+            // Public GETs — no token needed
+            if ("GET".equalsIgnoreCase(httpMethod)) {
+                boolean isPublicGet =
+                        sub.equals("/festival")
+                        || sub.equals("/festivals")
+                        || sub.equals("/festivals/all/images")
+                        || (sub.startsWith("/festivals/") && sub.endsWith("/images"))
+                        || sub.startsWith("/share/");
+                if (isPublicGet) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+            }
+
+            // Public POST — message creation (user on /festival page, no account needed)
+            if ("POST".equalsIgnoreCase(httpMethod) && sub.equals("/admin/messages")) {
+                chain.doFilter(request, response);
+                return;
+            }
+
+            // Everything else (/admin/festivals, /admin/images, PUT, DELETE…) → JWT required
+        }
+        // Public affiliate click tracking: GET /api/affiliate/track?ref=CODE sets
+        // the 15-day aj_ref cookie and 302-redirects to the shared target page.
+        // No JWT — the visitor is usually anonymous at click time. Link mgmt
+        // (POST/GET /api/affiliate/links) still requires a Bearer token.
+        if ("GET".equalsIgnoreCase(httpMethod) && path != null
+                && path.startsWith("/api/affiliate")) {
+            String pathInfo = request.getPathInfo();
+            if ("/track".equals(pathInfo)) {
+                chain.doFilter(request, response);
+                return;
+            }
         }
         // Public contact form submissions. Listing / status updates / delete
         // on /api/contact still go through auth + @RequiresRole("Admin").
@@ -101,6 +173,15 @@ public class AuthorizationFilter implements Filter {
         if ("POST".equalsIgnoreCase(httpMethod) && path != null
                 && path.equals("/api/payment")
                 && "webhook".equals(request.getParameter("action"))) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Rapido delivery status webhook: server-to-server callback. No JWT
+        // possible. Authenticated INSIDE the controller by HMAC-SHA256 over the
+        // raw request body using RAPIDO_WEBHOOK_SECRET.
+        if ("POST".equalsIgnoreCase(httpMethod) && path != null
+                && path.equals("/api/integrations/rapido/webhook")) {
             chain.doFilter(request, response);
             return;
         }

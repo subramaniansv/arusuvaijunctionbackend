@@ -15,6 +15,7 @@ import com.ecommerce.app.config.DBLifecycleListener;
 import com.ecommerce.app.module.admin.AdminController;
 import com.ecommerce.app.module.cart.CartController;
 import com.ecommerce.app.module.wishlist.WishlistController;
+import com.ecommerce.app.module.push.PushController;
 import com.ecommerce.app.module.mail.MailController;
 import com.ecommerce.app.module.health.HealthController;
 import com.ecommerce.app.module.health.PingController;
@@ -35,12 +36,20 @@ import com.ecommerce.app.module.product.ProductController;
 import com.ecommerce.app.module.product.ProductImageController;
 import com.ecommerce.app.module.product.ProductVariantController;
 import com.ecommerce.app.module.address.UserAddressController;
+import com.ecommerce.app.module.banner.BannerController;
 import com.ecommerce.app.module.contact.ContactController;
 import com.ecommerce.app.module.review.ReviewController;
 import com.ecommerce.app.module.search.ProductSearchController;
 import com.ecommerce.app.module.search.ProductSearchIndexer;
 import com.ecommerce.app.module.shipping.ShippingController;
 import com.ecommerce.app.module.shipping.AdminShippingController;
+import com.ecommerce.app.module.quick.QuickDeliveryController;
+import com.ecommerce.app.module.quick.AdminQuickController;
+import com.ecommerce.app.module.delivery.RapidoWebhookController;
+import com.ecommerce.app.module.loyalty.LoyaltyController;
+import com.ecommerce.app.module.loyalty.AdminLoyaltyController;
+import com.ecommerce.app.module.affiliate.AffiliateController;
+import com.ecommerce.app.module.affiliate.AdminAffiliateController;
 import com.ecommerce.app.security.GlobalExceptionFilter;
 import com.ecommerce.app.security.SecurityHeadersFilter;
 import com.ecommerce.app.security.CsrfGuardFilter;
@@ -107,6 +116,21 @@ public final class Main {
 
         // One-time migration: backfill variant_label on legacy order_items
         com.ecommerce.app.module.order.FixVariantMigration.run();
+
+        // One-time migration: festival spotlight (image_id, sender_name, single-active rule)
+        com.ecommerce.app.module.banner.FestivalSpotlightMigration.run();
+
+        // One-time migration: loyalty card (QR check-in) tables
+        com.ecommerce.app.module.loyalty.LoyaltyMigration.run();
+
+        // One-time migration: loyalty point redemption (settings + ledger)
+        com.ecommerce.app.module.loyalty.LoyaltyPointsMigration.run();
+
+        // One-time migration: affiliate / referral (links, attributions, conversions, rates)
+        com.ecommerce.app.module.affiliate.AffiliateMigration.run();
+
+        // One-time migration: web-push subscriptions (one row per device)
+        com.ecommerce.app.module.push.PushMigration.run();
 
         // Best-effort Elasticsearch bootstrap: create the index + alias
         // and seed it from Postgres. Runs in the background so a missing
@@ -248,18 +272,44 @@ public final class Main {
         mount(ctx, new CategoryController(), "/api/category");
         mount(ctx, new CartController(), "/api/cart");
         mount(ctx, new WishlistController(), "/api/wishlist");
+        // Web Push: public vapid key + authed subscribe/unsubscribe
+        mount(ctx, new PushController(), "/api/push", "/api/push/*");
         mount(ctx, new OrderController(), "/api/order");
         mount(ctx, new InvoiceController(), "/api/order/invoice");
         mount(ctx, new PaymentController(), "/api/payment");
         mount(ctx, new ReviewController(), "/api/review");
         mount(ctx, new UserAddressController(), "/api/address");
         mount(ctx, new ContactController(), "/api/contact");
+
+        // Festival Banner System:
+        //   public:  /api/banner/festivals, /api/banner/festivals/*/images, /api/banner/share/*
+        //   admin:   /api/banner/admin/festivals, /api/banner/admin/images, /api/banner/admin/messages
+        mount(ctx, new BannerController(),
+                "/api/banner",
+                "/api/banner/*");
         mount(ctx, new MailController(), "/api/mail");
         mount(ctx, new AdminController(), "/api/admin");
 
         // Shipping (Delhivery integration)
         mount(ctx, new ShippingController(), "/api/shipping");
         mount(ctx, new AdminShippingController(), "/api/admin/shipping");
+
+        // Quick / hyperlocal delivery (Rapido integration)
+        mount(ctx, new QuickDeliveryController(), "/api/quick");
+        mount(ctx, new AdminQuickController(), "/api/admin/quick");
+
+        // Loyalty card (QR check-in): customer scan + admin approval console
+        mount(ctx, new LoyaltyController(), "/api/loyalty", "/api/loyalty/*");
+        mount(ctx, new AdminLoyaltyController(), "/api/admin/loyalty");
+        mount(ctx, new com.ecommerce.app.module.loyalty.LoyaltyRedemptionController(),
+                "/api/loyalty/redeem", "/api/loyalty/redeem/*");
+        mount(ctx, new com.ecommerce.app.module.loyalty.AdminLoyaltyRedemptionController(),
+                "/api/admin/loyalty/redemptions", "/api/admin/loyalty/redemptions/*");
+
+        // Affiliate / referral: public click-track + authed link mgmt; admin rate config
+        mount(ctx, new AffiliateController(), "/api/affiliate", "/api/affiliate/*");
+        mount(ctx, new AdminAffiliateController(), "/api/admin/affiliate/settings");
+        mount(ctx, new RapidoWebhookController(), "/api/integrations/rapido/webhook");
 
         // Health probes (multi-pattern: exact and sub-paths)
         mount(ctx, new HealthController(), "/health", "/health/*");
